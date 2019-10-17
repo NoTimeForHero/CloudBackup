@@ -5,13 +5,13 @@ using System.Runtime.InteropServices;
 // Общие сведения об этой сборке предоставляются следующим набором
 // набора атрибутов. Измените значения этих атрибутов, чтобы изменить сведения,
 // связанные со сборкой.
-[assembly: AssemblyTitle("CloudBackuper")]
+[assembly: AssemblyTitle("CloudBackup")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("CloudBackuper")]
-[assembly: AssemblyCopyright("Copyright ©  2019")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCompany("NoTimeForHero")]
+[assembly: AssemblyProduct("CloudBackup")]
+[assembly: AssemblyCopyright("Copyright NoTimeForHero©  2019")]
+[assembly: AssemblyTrademark("NoTimeForHero")]
 [assembly: AssemblyCulture("")]
 
 // Установка значения False для параметра ComVisible делает типы в этой сборке невидимыми

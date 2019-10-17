@@ -1,0 +1,32 @@
+{
+    "Cloud": {
+      "Provider": "https://s3.selcdn.ru",
+      "Login": "999999_UserPrefix",
+      "Password": "Password123456",
+      "Container": "BucketName",
+      "ForcePathStyle": true
+    },
+    "Jobs": [
+      {
+        "Name": "Backup system files",
+        "Description": null,
+        "CronSchedule": "0 0 18 * * ?",
+        "Path": "C:\\Windows\\System32",
+        "Masks": [
+          ".ini",
+          ".dat"
+        ]
+      },
+      {
+        "Name": "User files",
+        "Description": null,
+        "CronSchedule": "0 0 18 * * ?",
+        "Path": "C:\\Users\\user\\Desktop",
+        "Masks": [
+          ".txt", 
+          ".docx",  
+          ".xlsx"
+        ]
+      }
+    ]
+  }
