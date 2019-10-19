@@ -10,16 +10,20 @@ using NLog;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Impl.Matchers;
+using Unity;
 
 namespace CloudBackuper
 {
     class JobController
     {
+        protected IUnityContainer container;
         protected static Logger logger = LogManager.GetCurrentClassLogger();
         protected IScheduler scheduler;
 
-        public JobController(Config config)
+        public JobController(IUnityContainer container)
         {
+            this.container = container;
+            var config = container.Resolve<Config>();
             Constructor(config);
         }
 

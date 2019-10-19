@@ -3,24 +3,32 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Forms;
+using NLog;
+using Unity;
+using Timer = System.Windows.Forms.Timer;
 
 namespace CloudBackuper
 {
     class TrayIcon : IDisposable
     {
-        private readonly JobController jobController;
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly NotifyIcon notifyIcon;
         private string ApplicationName => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title;
+        private IUnityContainer container;
 
-        public TrayIcon(JobController jobController)
+        /// <summary>Строка состояния, под названием программы, обновляемая каждые 500мс</summary>
+        public string Status;
+
+        public TrayIcon(IUnityContainer container)
         {
+            this.container = container;
             notifyIcon = new NotifyIcon();
             notifyIcon.ContextMenu = GetContextMenu();
             notifyIcon.Text = ApplicationName;
             notifyIcon.Icon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
             notifyIcon.Visible = true;
-            this.jobController = jobController;
         }
 
         protected ContextMenu GetContextMenu()
@@ -29,6 +37,15 @@ namespace CloudBackuper
 
             var lblInfo1 = new MenuItem(getInfo()) { Enabled = false };
             menu.MenuItems.Add(lblInfo1);
+
+            // Индикатор состояния, обновляемый по таймеру
+            MenuItem itemInfo = new MenuItem();
+            menu.MenuItems.Add(itemInfo);
+
+            Timer timer = new Timer();
+            timer.Tick += (o, ev) => itemInfo.Text = Status;
+            timer.Interval = 500;
+            timer.Start();
 
             // Разделитель
             menu.MenuItems.Add("-");
@@ -60,9 +77,10 @@ namespace CloudBackuper
 
         private void btnForceRunClick(object sender, EventArgs e)
         {
+            var jobController = container.Resolve<JobController>();
             MessageBox.Show("Все задачи резервного копирования были принудительно запущены!",
                 "Оповещение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            jobController.ForceRunJobs();
+            //jobController.ForceRunJobs();
         }
 
         private void btnAboutClick(object sender, EventArgs e)

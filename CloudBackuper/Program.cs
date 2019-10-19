@@ -4,13 +4,16 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using NLog;
-using Quartz;
+using NLog.Config;
+using NLog.Targets;
+using Unity;
+using Unity.Injection;
 
 namespace CloudBackuper
 {
     static class Program
     {
-        static readonly Logger logger = NLog.LogManager.GetLogger("Program");
+        static readonly Logger logger = LogManager.GetLogger("Program");
 
         /// <summary>
         /// Главная точка входа для приложения.
@@ -30,8 +33,11 @@ namespace CloudBackuper
             string json = File.ReadAllText("config.json");
             Config config = JsonConvert.DeserializeObject<Config>(json);
 
-            var jobController = new JobController(config);
-            var icon = new TrayIcon(jobController);
+            var container = new UnityContainer();
+            container.RegisterInstance(config);
+            container.RegisterSingleton<JobController>();
+            container.RegisterSingleton<TrayIcon>();
+            container.Resolve<TrayIcon>(); // RegisterSingleton ленивый, поэтому нужно его пнуть
             Application.Run();
         }
 
@@ -47,15 +53,15 @@ namespace CloudBackuper
 
         static void initLogging()
         {
-            var config = new NLog.Config.LoggingConfiguration();
+            var config = new LoggingConfiguration();
 
-            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "debug.log" };
-            var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
+            var logfile = new FileTarget("logfile") { FileName = "debug.log" };
+            var logconsole = new ConsoleTarget("logconsole");
 
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
 
-            NLog.LogManager.Configuration = config;
+            LogManager.Configuration = config;
         }
     }
 }
