@@ -14,6 +14,7 @@ namespace CloudBackuper
     static class Program
     {
         static readonly Logger logger = LogManager.GetLogger("Program");
+        public static readonly IUnityContainer container = new UnityContainer();
 
         /// <summary>
         /// Главная точка входа для приложения.
@@ -33,8 +34,8 @@ namespace CloudBackuper
             string json = File.ReadAllText("config.json");
             Config config = JsonConvert.DeserializeObject<Config>(json);
 
-            var container = new UnityContainer();
             container.RegisterInstance(config);
+            container.RegisterSingleton<AppState>();
             container.RegisterSingleton<JobController>();
             container.RegisterSingleton<TrayIcon>();
             container.Resolve<TrayIcon>(); // RegisterSingleton ленивый, поэтому нужно его пнуть

@@ -43,11 +43,13 @@ namespace CloudBackuper
         {
             scheduler = await InitSheduler();
             var tasks = new List<Task>();
+            int index = 0;
 
             foreach (var cfgJog in config.Jobs)
             {
                 var data = new JobDataMap
                 {
+                    ["index"] = index,
                     ["cloud"] = config.Cloud,
                     ["data"] = cfgJog
                 };
@@ -67,6 +69,7 @@ namespace CloudBackuper
 
                 var task = scheduler.ScheduleJob(job, trigger);
                 tasks.Add(task);
+                index++;
             }
             await Task.WhenAll(tasks);
         }

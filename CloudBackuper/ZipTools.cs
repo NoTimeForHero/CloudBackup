@@ -11,6 +11,9 @@ namespace CloudBackuper
     {
         protected readonly Logger logger = NLog.LogManager.GetCurrentClassLogger();
         protected readonly string zipPath;
+        protected readonly string pathToDirectory;
+        protected readonly List<string> files;
+
         public string Filename => zipPath;
 
         public ZipTools(string pathToDirectory, string[] extensions)
@@ -23,6 +26,7 @@ namespace CloudBackuper
             {
                 throw new ArgumentException("All extensions must be start with '.' (for example: '.dat')");
             }
+            this.pathToDirectory = pathToDirectory;
 
             logger.Info($"Путь поиска файлов: {pathToDirectory}");
             logger.Info($"Ищем файлы с расширениями: [{string.Join(", ",extensions)}]");
@@ -32,8 +36,11 @@ namespace CloudBackuper
             logger.Info($"Создан временный файл: {zipPath}");
 
             Func<string, bool> isMatch = name => extensions.Any(ext => Path.GetExtension(name) == ext);
-            var files = Directory.GetFiles(pathToDirectory, "*.*", SearchOption.AllDirectories).Where(isMatch).ToList();
+            files = Directory.GetFiles(pathToDirectory, "*.*", SearchOption.AllDirectories).Where(isMatch).ToList();
+        }
 
+        public void CreateZip()
+        {
             logger.Debug($"Файлов подходит по маске: {files.Count}");
             WriteToFile(pathToDirectory, files);
         }

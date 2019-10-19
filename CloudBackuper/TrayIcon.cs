@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -14,16 +15,22 @@ namespace CloudBackuper
     class TrayIcon : IDisposable
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        private readonly NotifyIcon notifyIcon;
-        private string ApplicationName => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title;
-        private IUnityContainer container;
 
-        /// <summary>Строка состояния, под названием программы, обновляемая каждые 500мс</summary>
-        public string Status;
+        private string ApplicationName => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title;
+        private readonly int statusIndex = 1;
+        private readonly MenuItem status;
+        private readonly MenuItem[] buttons;
+        private readonly NotifyIcon notifyIcon;
+        private readonly IUnityContainer container;
+
+        private Timer timer;
 
         public TrayIcon(IUnityContainer container)
         {
             this.container = container;
+            status = buildStatus();
+            buttons = buildButtons();
+
             notifyIcon = new NotifyIcon();
             notifyIcon.ContextMenu = GetContextMenu();
             notifyIcon.Text = ApplicationName;
@@ -34,73 +41,110 @@ namespace CloudBackuper
         protected ContextMenu GetContextMenu()
         {
             var menu = new ContextMenu();
+            var state = container.Resolve<AppState>();
+            var Lines = state.Status;
 
-            var lblInfo1 = new MenuItem(getInfo()) { Enabled = false };
-            menu.MenuItems.Add(lblInfo1);
+            bool needRebuild = false;
 
-            // Индикатор состояния, обновляемый по таймеру
-            MenuItem itemInfo = new MenuItem();
-            menu.MenuItems.Add(itemInfo);
+            Lines.CollectionChanged += (o, ev) => needRebuild = true;
+            buildMenu(0);
 
-            Timer timer = new Timer();
-            timer.Tick += (o, ev) => itemInfo.Text = Status;
-            timer.Interval = 500;
+            timer = new Timer();
+            timer.Tick += updateLabels;
+            timer.Interval = 100;
             timer.Start();
+            return menu;
+
+            void updateLabels(object o, EventArgs ev)
+            {
+                if (needRebuild)
+                {
+                    buildMenu(Lines.Count);
+                    needRebuild = false;
+                }
+
+                for (int i = 0; i < Lines.Count; i++)
+                {
+                    menu.MenuItems[statusIndex + i].Text = Lines[i].Data;
+                }
+            }
+
+            void buildMenu(int count)
+            {
+                menu.MenuItems.Clear();
+                menu.MenuItems.Add(status);
+                for (var i = 0; i < count; i++)
+                {
+                    menu.MenuItems.Add(new MenuItem { Enabled = false });
+                }
+                menu.MenuItems.AddRange(buttons);
+            }
+        }
+
+        private MenuItem buildStatus()
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            var title = $"{ApplicationName} [{version}]";
+
+            var lblInfo1 = new MenuItem(title) { Enabled = false };
+            return lblInfo1;
+        }
+
+        private MenuItem[] buildButtons()
+        {
+            var buttons = new List<MenuItem>();
 
             // Разделитель
-            menu.MenuItems.Add("-");
+            buttons.Add(new MenuItem("-"));
 
             var btnForceRun = new MenuItem("Принудительный запуск");
             btnForceRun.Click += btnForceRunClick;
-            menu.MenuItems.Add(btnForceRun);
+            buttons.Add(btnForceRun);
 
             var btnOpen = new MenuItem("Папка с программой");
             btnOpen.Click += btnOpenClick;
-            menu.MenuItems.Add(btnOpen);
+            buttons.Add(btnOpen);
 
             var btnAbout = new MenuItem("Об авторах");
             btnAbout.Click += btnAboutClick;
-            menu.MenuItems.Add(btnAbout);
+            buttons.Add(btnAbout);
 
             var btnExit = new MenuItem("Выход из программы");
             btnExit.Click += (o, ev) => Application.Exit();
-            menu.MenuItems.Add(btnExit);
+            buttons.Add(btnExit);
 
-            return menu;
-        }
+            return buttons.ToArray();
 
-        private string getInfo()
-        {
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            return $"{ApplicationName} [{version}]";
-        }
+            void btnForceRunClick(object sender, EventArgs e)
+            {
+                var jobController = container.Resolve<JobController>();
+                jobController.ForceRunJobs();
+                MessageBox.Show("Все задачи резервного копирования были принудительно запущены!",
+                    "Оповещение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
 
-        private void btnForceRunClick(object sender, EventArgs e)
-        {
-            var jobController = container.Resolve<JobController>();
-            MessageBox.Show("Все задачи резервного копирования были принудительно запущены!",
-                "Оповещение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            //jobController.ForceRunJobs();
-        }
+            void btnAboutClick(object sender, EventArgs e)
+            {
+                string text = "Разработчик программы - NoTimeForHero";
+                text += "\nhttps://github.com/NoTimeForHero";
+                text += "\n\nАвтор иконки: Carlo Rodríguez, iconfinder.com";
 
-        private void btnAboutClick(object sender, EventArgs e)
-        {
-            string text = "Разработчик программы - NoTimeForHero";
-            text += "\nhttps://github.com/NoTimeForHero";
-            text += "\n\nАвтор иконки: Carlo Rodríguez, iconfinder.com";
+                MessageBox.Show(text, "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
 
-            MessageBox.Show(text, "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        private void btnOpenClick(object sender, EventArgs e)
-        {
-            var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            Process.Start("explorer", path);
+            void btnOpenClick(object sender, EventArgs e)
+            {
+                var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                Process.Start("explorer", path);
+            }
         }
 
         public void Dispose()
         {
+            timer?.Dispose();
             notifyIcon?.Dispose();
         }
     }
 }
+ 
+ 
