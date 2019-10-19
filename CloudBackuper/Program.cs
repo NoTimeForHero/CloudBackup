@@ -21,14 +21,14 @@ namespace CloudBackuper
             initLogging();
             logger.Info("Application started!");
 
+            TaskScheduler.UnobservedTaskException += (o, ev) => OnCriticalError(ev.Exception);
+            AppDomain.CurrentDomain.UnhandledException += (o, ev) => OnCriticalError(ev.ExceptionObject as Exception);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
             string json = File.ReadAllText("config.json");
             Config config = JsonConvert.DeserializeObject<Config>(json);
-
-            TaskScheduler.UnobservedTaskException += (o, ev) => OnCriticalError(ev.Exception);
-            AppDomain.CurrentDomain.UnhandledException += (o, ev) => OnCriticalError(ev.ExceptionObject as Exception);
 
             var jobController = new JobController(config);
             var icon = new TrayIcon(jobController);
