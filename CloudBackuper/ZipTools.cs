@@ -78,7 +78,6 @@ namespace CloudBackuper
                     fsInput.Dispose();
                     entryStream.Dispose();
 
-                    //Thread.Sleep(2000);
                     index++;
                 }
             }

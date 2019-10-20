@@ -23,18 +23,6 @@ namespace CloudBackuper
             var filename = cfgJob.Name.ConvertToValidFilename();
             filename = DateTime.Now.ToString("yyyy.MM.dd_HH.mm.ss") + $"_{filename}.zip";
 
-            /*
-            using (var line = new AppState.Line())
-            {
-                line.Data = $"Запущена задача №{jobIndex}";
-                await Task.Delay(2000);
-                for (int i = 24 * jobIndex; i <= 100; i++)
-                {
-                    line.Data = $"Task {jobIndex}: {i}% completed!";
-                    await Task.Delay(150);
-                }
-            }
-            */
             await Task.Run(() =>
             {
                 using (var line = new AppState.Line())
@@ -44,9 +32,14 @@ namespace CloudBackuper
                     {
                         zip.CreateZip((total, index, name) =>
                         {
-                            line.Data = $"Архивация[{index}/{total}]: {name}";
+                            var msg = $"Архивация[{index}/{total}]: {name}";
+                            logger.Debug(msg);
+                            line.Data = msg;
                         });
-                        s3.UploadFile(zip.Filename, filename);
+                        s3.UploadFile(zip.Filename, filename, (sender, args) =>
+                        {
+                            line.Data = $"Отправка №{jobIndex+1}: {args.PercentDone}%";
+                        });
                     }
                     logger.Debug($"Задача №{jobIndex} завершена: {cfgJob.Name}");
                 }

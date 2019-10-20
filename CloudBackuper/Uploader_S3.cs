@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using Amazon;
+using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
@@ -42,7 +43,7 @@ namespace CloudBackuper
             logger.Info($"Подключены к S3 хранилищу от имени '{settings.Login}' к контейнеру '{settings.Container}'");
         }
 
-        public void UploadFile(string path, string destName)
+        public void UploadFile(string path, string destName, EventHandler<StreamTransferProgressArgs> callback=null)
         {
             logger.Info($"Загружаем в облако архив '{destName}'");
 
@@ -51,6 +52,7 @@ namespace CloudBackuper
             request.Key = destName;
             request.FilePath = path;
             request.UseChunkEncoding = false;
+            if (callback != null) request.StreamTransferProgress += callback;
 
             client.PutObject(request);
             logger.Debug($"Архив '{destName}' успешно загружен!");
