@@ -17,6 +17,7 @@ namespace CloudBackuper
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         private string ApplicationName => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title;
+        private readonly int jobsCount;
         private readonly int statusIndex = 1;
         private readonly MenuItem status;
         private readonly MenuItem[] buttons;
@@ -30,6 +31,7 @@ namespace CloudBackuper
             this.container = container;
             status = buildStatus();
             buttons = buildButtons();
+            jobsCount = container.Resolve<Config>().Jobs.Count;
 
             notifyIcon = new NotifyIcon();
             notifyIcon.ContextMenu = GetContextMenu();
@@ -44,10 +46,8 @@ namespace CloudBackuper
             var state = container.Resolve<AppState>();
             var Lines = state.Status;
 
-            bool needRebuild = false;
-
-            Lines.CollectionChanged += (o, ev) => needRebuild = true;
-            buildMenu(0);
+            Lines.CollectionChanged += clearLabels;
+            buildMenu(jobsCount);
 
             timer = new Timer();
             timer.Tick += updateLabels;
@@ -55,14 +55,16 @@ namespace CloudBackuper
             timer.Start();
             return menu;
 
+            void clearLabels(object o, EventArgs ev)
+            {
+                for (int i = 0; i < jobsCount; i++)
+                {
+                    menu.MenuItems[statusIndex + i].Text = "";
+                }
+            }
+
             void updateLabels(object o, EventArgs ev)
             {
-                if (needRebuild)
-                {
-                    buildMenu(Lines.Count);
-                    needRebuild = false;
-                }
-
                 for (int i = 0; i < Lines.Count; i++)
                 {
                     menu.MenuItems[statusIndex + i].Text = Lines[i].Data;
