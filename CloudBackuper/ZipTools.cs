@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using NLog;
 
 namespace CloudBackuper
@@ -15,6 +16,8 @@ namespace CloudBackuper
         protected readonly List<string> files;
 
         public string Filename => zipPath;
+
+        public delegate void OnZipChanged(int total, int currentIndex, string currentName);
 
         public ZipTools(string pathToDirectory, string[] extensions)
         {
@@ -39,13 +42,13 @@ namespace CloudBackuper
             files = Directory.GetFiles(pathToDirectory, "*.*", SearchOption.AllDirectories).Where(isMatch).ToList();
         }
 
-        public void CreateZip()
+        public void CreateZip(OnZipChanged callback=null)
         {
             logger.Debug($"Файлов подходит по маске: {files.Count}");
-            WriteToFile(pathToDirectory, files);
+            WriteToFile(pathToDirectory, files, callback);
         }
 
-        protected void WriteToFile(string pathToDirectory, List<string> files)
+        protected void WriteToFile(string pathToDirectory, List<string> files, OnZipChanged callback)
         {
             FileStream fsZip = null;
             FileStream fsInput = null;
@@ -56,10 +59,15 @@ namespace CloudBackuper
             {
                 fsZip = new FileStream(zipPath, FileMode.Create);
                 zip = new ZipArchive(fsZip, ZipArchiveMode.Create);
+
+                int total = files.Count;
+                int index = 0;
+
                 foreach (var path in files)
                 {
                     var filename = FileUtils.GetRelativePath(pathToDirectory, path);
                     logger.Info($"Архивируем файл: " + filename);
+                    callback?.Invoke(total, index, filename);
 
                     var entry = zip.CreateEntry(filename);
                     entryStream = entry.Open();
@@ -69,6 +77,9 @@ namespace CloudBackuper
 
                     fsInput.Dispose();
                     entryStream.Dispose();
+
+                    //Thread.Sleep(2000);
+                    index++;
                 }
             }
             finally

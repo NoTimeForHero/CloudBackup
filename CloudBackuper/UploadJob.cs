@@ -37,13 +37,19 @@ namespace CloudBackuper
             */
             await Task.Run(() =>
             {
-                var s3 = Uploader_S3.GetInstance(cfgCloud);
-                using (var zip = new ZipTools(cfgJob.Path, cfgJob.Masks))
+                using (var line = new AppState.Line())
                 {
-                    zip.CreateZip();
-                    s3.UploadFile(zip.Filename, filename);
+                    var s3 = Uploader_S3.GetInstance(cfgCloud);
+                    using (var zip = new ZipTools(cfgJob.Path, cfgJob.Masks))
+                    {
+                        zip.CreateZip((total, index, name) =>
+                        {
+                            line.Data = $"Архивация[{index}/{total}]: {name}";
+                        });
+                        s3.UploadFile(zip.Filename, filename);
+                    }
+                    logger.Debug($"Задача №{jobIndex} завершена: {cfgJob.Name}");
                 }
-                logger.Debug($"Задача №{jobIndex} завершена: {cfgJob.Name}");
             });
         }
     }
