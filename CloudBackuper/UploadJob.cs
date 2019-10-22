@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using NLog;
 using Quartz;
@@ -25,10 +27,16 @@ namespace CloudBackuper
 
             await Task.Run(() =>
             {
+                logger.Debug("Архивация директории: " + cfgJob.Path);
+                logger.Debug("Маски файлов: " + string.Join(", ", cfgJob.Masks.Masks));
+                logger.Debug("Тип масок: " + (cfgJob.Masks.MasksExclude ? "Whitelist" : "Blacklist"));
+                var files = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks);
+
                 using (var line = new AppState.Line())
                 {
                     var s3 = Uploader_S3.GetInstance(cfgCloud);
-                    using (var zip = new ZipTools(cfgJob.Path, cfgJob.Masks))
+
+                    using (var zip = new ZipTools(cfgJob.Path, files))
                     {
                         zip.CreateZip((total, index, name) =>
                         {

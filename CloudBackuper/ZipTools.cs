@@ -19,27 +19,22 @@ namespace CloudBackuper
 
         public delegate void OnZipChanged(int total, int currentIndex, string currentName);
 
-        public ZipTools(string pathToDirectory, string[] extensions)
+        public ZipTools(string pathToDirectory, List<string> files)
         {
             if (!Directory.Exists(pathToDirectory))
             {
                 throw new ArgumentException($"Directory doesn't exists on path: {pathToDirectory}! ");
             }
-            if (!extensions.All(name => name.StartsWith(".")))
-            {
-                throw new ArgumentException("All extensions must be start with '.' (for example: '.dat')");
-            }
+
+            this.files = files;
             this.pathToDirectory = pathToDirectory;
 
             logger.Info($"Путь поиска файлов: {pathToDirectory}");
-            logger.Info($"Ищем файлы с расширениями: [{string.Join(", ",extensions)}]");
 
             string zipFilename = Path.ChangeExtension(Path.GetRandomFileName(), ".zip");
             zipPath = Path.Combine(Path.GetTempPath(), zipFilename);
             logger.Info($"Создан временный файл: {zipPath}");
 
-            Func<string, bool> isMatch = name => extensions.Any(ext => Path.GetExtension(name) == ext);
-            files = Directory.GetFiles(pathToDirectory, "*.*", SearchOption.AllDirectories).Where(isMatch).ToList();
         }
 
         public void CreateZip(OnZipChanged callback=null)
