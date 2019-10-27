@@ -23,22 +23,25 @@ namespace CloudBackuper
         static void Main()
         {
             initLogging();
-            logger.Info("Application started!");
+            logger.Warn("Приложение было запущено!");
 
             TaskScheduler.UnobservedTaskException += (o, ev) => OnCriticalError(ev.Exception);
             AppDomain.CurrentDomain.UnhandledException += (o, ev) => OnCriticalError(ev.ExceptionObject as Exception);
-
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            Application.ApplicationExit += (o, ev) => logger.Warn("Приложение было закрыто!");
 
             string json = File.ReadAllText("config.json");
             Config config = JsonConvert.DeserializeObject<Config>(json);
+            applyLoggingSettings(config.Logging);
+
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
 
             container.RegisterInstance(config);
             container.RegisterSingleton<AppState>();
             container.RegisterSingleton<JobController>();
             container.RegisterSingleton<TrayIcon>();
             container.Resolve<TrayIcon>(); // RegisterSingleton ленивый, поэтому нужно его пнуть
+
             Application.Run();
         }
 
@@ -59,10 +62,22 @@ namespace CloudBackuper
             var logfile = new FileTarget("logfile") { FileName = "debug.log" };
             var logconsole = new ConsoleTarget("logconsole");
 
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, logfile);
 
             LogManager.Configuration = config;
+        }
+
+        static void applyLoggingSettings(Config_Logging settings)
+        {
+            var config = LogManager.Configuration;
+            settings = settings ?? Config_Logging.Defaults;
+
+            foreach (var target in config.LoggingRules) target.SetLoggingLevels(settings.LogLevel, LogLevel.Fatal);
+            LogManager.ReconfigExistingLoggers();
+            LogManager.Configuration.Reload();
+
+            logger.Info($"Установлен LogLevel: {settings.LogLevel}");
         }
     }
 }

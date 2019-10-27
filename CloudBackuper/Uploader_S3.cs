@@ -38,14 +38,14 @@ namespace CloudBackuper
             ListBucketsResponse response = client.ListBuckets();
 
             bucket = response.Buckets.First(x => x.BucketName == settings.Container);
-            if (bucket == null) throw new InvalidOperationException($"Can' find S3 bucket: {settings.Container}");
+            if (bucket == null) throw new InvalidOperationException($"Can't find S3 bucket: {settings.Container}");
 
             logger.Info($"Подключены к S3 хранилищу от имени '{settings.Login}' к контейнеру '{settings.Container}'");
         }
 
         public void UploadFile(string path, string destName, EventHandler<StreamTransferProgressArgs> callback=null)
         {
-            logger.Info($"Загружаем в облако архив '{destName}'");
+            logger.Debug($"Загружаем в облако архив '{destName}'");
 
             PutObjectRequest request = new PutObjectRequest();
             request.BucketName = bucket.BucketName;
@@ -55,7 +55,7 @@ namespace CloudBackuper
             if (callback != null) request.StreamTransferProgress += callback;
 
             client.PutObject(request);
-            logger.Debug($"Архив '{destName}' успешно загружен!");
+            logger.Info($"Архив '{destName}' успешно загружен в S3!");
         }
     }
 }

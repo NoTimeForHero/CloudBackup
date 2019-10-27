@@ -1,4 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NLog;
+using NLog.Fluent;
 
 namespace CloudBackuper
 {
@@ -6,7 +11,20 @@ namespace CloudBackuper
     {
         public Config_S3 Cloud { get; set; }
         public List<Config_Job> Jobs { get; set; }
+
+        [JsonConverter(typeof(ConfigLogging_JsonConverter))]
+        public Config_Logging Logging { get; set; }
     }
+
+    public class Config_Logging
+    {
+        public LogLevel LogLevel { get; set; }
+
+        public static Config_Logging Defaults => new Config_Logging {
+            LogLevel = LogLevel.Info
+        };
+    }
+
 
     public class Config_S3
     {
@@ -37,4 +55,27 @@ namespace CloudBackuper
             return $"Job[Name='{Name}',Path='{Path}',CronSchedule='{CronSchedule}']";
         }
     }
+
+    #region Json Converters
+    public class ConfigLogging_JsonConverter : JsonConverter<Config_Logging>
+    {
+        public override void WriteJson(JsonWriter writer, Config_Logging value, JsonSerializer serializer)
+            => throw new NotImplementedException();
+
+        public override Config_Logging ReadJson(JsonReader reader, Type objectType, Config_Logging existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            Config_Logging output = Config_Logging.Defaults;
+
+            var data = JObject.Load(reader);
+
+            if (data["Level"] is JToken logLevel)
+            {
+                var value = logLevel.Value<string>();
+                output.LogLevel = LogLevel.FromString(value);
+            }
+
+            return output;
+        }
+    }
+    #endregion Json Converters
 }

@@ -29,11 +29,11 @@ namespace CloudBackuper
             this.files = files;
             this.pathToDirectory = pathToDirectory;
 
-            logger.Info($"Путь поиска файлов: {pathToDirectory}");
+            logger.Debug($"Папка с файлами для архивации: {pathToDirectory}");
 
             string zipFilename = Path.ChangeExtension(Path.GetRandomFileName(), ".zip");
             zipPath = Path.Combine(Path.GetTempPath(), zipFilename);
-            logger.Info($"Создан временный файл: {zipPath}");
+            logger.Debug($"Создан временный файл: {zipPath}");
 
         }
 
@@ -41,6 +41,7 @@ namespace CloudBackuper
         {
             logger.Debug($"Файлов подходит по маске: {files.Count}");
             WriteToFile(pathToDirectory, files, callback);
+            logger.Info($"Архив успешно создан: {zipPath}");
         }
 
         protected void WriteToFile(string pathToDirectory, List<string> files, OnZipChanged callback)
@@ -61,7 +62,7 @@ namespace CloudBackuper
                 foreach (var path in files)
                 {
                     var filename = FileUtils.GetRelativePath(pathToDirectory, path);
-                    logger.Info($"Архивируем файл: " + filename);
+                    logger.Trace($"Архивируем файл: " + filename);
                     callback?.Invoke(total, index, filename);
 
                     var entry = zip.CreateEntry(filename);

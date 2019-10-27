@@ -20,7 +20,7 @@ namespace CloudBackuper
             var cfgCloud = dataMap["cloud"] as Config_S3;
             var cfgJob = dataMap["data"] as Config_Job;
 
-            logger.Debug($"Задача №{jobIndex} запущена: {cfgJob.Name}");
+            logger.Info($"Задача №{jobIndex} запущена: {cfgJob.Name}");
 
             var filename = cfgJob.Name.ConvertToValidFilename();
             filename = DateTime.Now.ToString("yyyy.MM.dd_HH.mm.ss") + $"_{filename}.zip";
@@ -40,16 +40,14 @@ namespace CloudBackuper
                     {
                         zip.CreateZip((total, index, name) =>
                         {
-                            var msg = $"Архивация[{index}/{total}]: {name}";
-                            logger.Debug(msg);
-                            line.Data = msg;
+                            line.Data = $"Архивация[{index}/{total}]: {name}";
                         });
                         s3.UploadFile(zip.Filename, filename, (sender, args) =>
                         {
                             line.Data = $"Отправка №{jobIndex+1}: {args.PercentDone}%";
                         });
                     }
-                    logger.Debug($"Задача №{jobIndex} завершена: {cfgJob.Name}");
+                    logger.Info($"Задача №{jobIndex} завершена: {cfgJob.Name}");
                 }
             });
         }
