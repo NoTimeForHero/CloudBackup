@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
+using NLog.Config;
 using NLog.Fluent;
+using NLog.Targets;
+using NLog.Targets.Wrappers;
 
 namespace CloudBackuper
 {
@@ -18,7 +22,9 @@ namespace CloudBackuper
 
     public class Config_Logging
     {
-        public LogLevel LogLevel { get; set; }
+        public LogLevel LogLevel;
+        public WebServiceTarget WebService;
+        public RetryingTargetWrapper RetryingWrapper;
 
         public static Config_Logging Defaults => new Config_Logging {
             LogLevel = LogLevel.Info
@@ -72,6 +78,26 @@ namespace CloudBackuper
             {
                 var value = logLevel.Value<string>();
                 output.LogLevel = LogLevel.FromString(value);
+            }
+
+            if (data["WebService"] is JToken webService)
+            {
+                var parameters = webService["parameters"]?.ToObject<Dictionary<string,string>>() ?? new Dictionary<string, string>();
+                webService.OfType<JProperty>().Where(x => x.Name == "parameters").ToList().ForEach(x => x.Remove());
+
+                var value = webService.ToObject<WebServiceTarget>();
+                foreach (var param in parameters)
+                {
+                    var layout = new NLog.Layouts.SimpleLayout(param.Value);
+                    value.Parameters.Add(new MethodCallParameter(param.Key, layout));
+                }
+                output.WebService = value;
+            }
+
+            if (data["RetryingWrapper"] is JToken retryWrapper)
+            {
+                var value = retryWrapper.ToObject<RetryingTargetWrapper>();
+                output.RetryingWrapper = value;
             }
 
             return output;

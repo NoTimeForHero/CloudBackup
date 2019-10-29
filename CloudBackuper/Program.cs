@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using NLog.Targets.Wrappers;
 using Unity;
 using Unity.Injection;
 
@@ -31,17 +32,16 @@ namespace CloudBackuper
 
             string json = File.ReadAllText("config.json");
             Config config = JsonConvert.DeserializeObject<Config>(json);
-            applyLoggingSettings(config.Logging);
+             applyLoggingSettings(config.Logging);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
             container.RegisterInstance(config);
             container.RegisterSingleton<AppState>();
-            container.RegisterSingleton<JobController>();
-            container.RegisterSingleton<TrayIcon>();
-            container.Resolve<TrayIcon>(); // RegisterSingleton ленивый, поэтому нужно его пнуть
-
+            // Избегаем ленивой инициализации объектов
+            container.RegisterSingleton<JobController>().Resolve<JobController>();
+            container.RegisterSingleton<TrayIcon>().Resolve<TrayIcon>();
             Application.Run();
         }
 
@@ -72,11 +72,27 @@ namespace CloudBackuper
         {
             var config = LogManager.Configuration;
             settings = settings ?? Config_Logging.Defaults;
+            var webService = settings.WebService;
+            var retryingWrapper = settings.RetryingWrapper;
+            var defaultLayout = (new ConsoleTarget()).Layout;
 
             foreach (var target in config.LoggingRules) target.SetLoggingLevels(settings.LogLevel, LogLevel.Fatal);
+            if (webService != null)
+            {
+                webService.Parameters.Add(new MethodCallParameter("log", defaultLayout));
+                Target target = webService;
+                if (retryingWrapper != null)
+                {
+                    retryingWrapper.WrappedTarget = webService;
+                    target = retryingWrapper;
+                }
+                config.AddRule(settings.LogLevel, LogLevel.Fatal, target);
+            }
+
             LogManager.ReconfigExistingLoggers();
             LogManager.Configuration.Reload();
 
+            if (webService != null) logger.Info($"Отправка логов: {webService.Url}");
             logger.Info($"Установлен LogLevel: {settings.LogLevel}");
         }
     }
