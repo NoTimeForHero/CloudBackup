@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
@@ -74,12 +75,16 @@ namespace CloudBackuper
             settings = settings ?? Config_Logging.Defaults;
             var webService = settings.WebService;
             var retryingWrapper = settings.RetryingWrapper;
-            var defaultLayout = (new ConsoleTarget()).Layout;
 
             foreach (var target in config.LoggingRules) target.SetLoggingLevels(settings.LogLevel, LogLevel.Fatal);
             if (webService != null)
             {
-                webService.Parameters.Add(new MethodCallParameter("log", defaultLayout));
+                if (webService.Parameters.FirstOrDefault(x => x.Name == "message") == null)
+                {
+                    var defaultLayout = (new ConsoleTarget()).Layout;
+                    webService.Parameters.Add(new MethodCallParameter("message", defaultLayout));
+                }
+
                 Target target = webService;
                 if (retryingWrapper != null)
                 {

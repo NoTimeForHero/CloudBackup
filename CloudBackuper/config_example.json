@@ -13,8 +13,11 @@
       "url": "http://localhost:3000/example",
       "protocol": "JsonPost",
       "parameters": {
-        "name": "USER #3464",
-        "api_Key": "e33928aa0c8a3244b8a7013f208e1d24a11dc437"
+        "api_Key": "e33928aa0c8a3244b8a7013f208e1d24a11dc437",
+        "data": "${longdate}",
+        "level": "${level:uppercase=true}",
+        "logger": "${logger}",
+        "message": "${message}"
       }
     },
     "RetryingWrapper": {
