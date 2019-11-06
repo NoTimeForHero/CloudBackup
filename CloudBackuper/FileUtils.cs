@@ -36,7 +36,7 @@ namespace CloudBackuper
             foreach (var file in files)
             {
                 var ext = Path.GetExtension(file);
-                var contains = masks.Masks.Contains(ext);
+                var contains = masks.Masks.Contains(ext, StringComparer.InvariantCultureIgnoreCase);
                 if (masks.MasksExclude && contains) continue;
                 if (!masks.MasksExclude && !contains) continue;
                 output.Add(file);

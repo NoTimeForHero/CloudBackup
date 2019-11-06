@@ -45,6 +45,26 @@ namespace Tests
         }
 
         [TestMethod]
+        public void CaseInsensetiveFiles()
+        {
+            Config_Masks masks = new Config_Masks
+            {
+                DirectoriesExcluded = new string[] { },
+                Masks = new[] {".bin"}
+            };
+
+            var files = new[] { "TEST.BIN", "test2.Bin", "test3.BIN", "test4.bIN", "test5.bin" };
+
+            // ReSharper disable once AccessToModifiedClosure
+            FileUtils.GetFiles getFiles = _ => files;
+
+            FileUtils.GetDirectories getDirectories = _ => { return new string[] { }; };
+
+            var result = FileUtils.GetFilesInDirectory(@"root", masks, getFiles, getDirectories);
+            CollectionAssert.AreEqual(files, result.ToArray());
+        }
+
+        [TestMethod]
         public void Directories()
         {
             Config_Masks masks = new Config_Masks
