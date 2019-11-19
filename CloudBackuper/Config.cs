@@ -15,6 +15,7 @@ namespace CloudBackuper
     {
         public Config_S3 Cloud { get; set; }
         public List<Config_Job> Jobs { get; set; }
+        public string HostingURI { get; set; } = "http://localhost:3000";
 
         [JsonConverter(typeof(ConfigLogging_JsonConverter))]
         public Config_Logging Logging { get; set; }

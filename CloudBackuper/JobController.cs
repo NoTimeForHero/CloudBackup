@@ -6,7 +6,11 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CrystalQuartz.Core.SchedulerProviders;
+using CrystalQuartz.Owin;
+using Microsoft.Owin.Hosting;
 using NLog;
+using Owin;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Impl.Matchers;
@@ -14,16 +18,20 @@ using Unity;
 
 namespace CloudBackuper
 {
-    class JobController
+    class JobController : IDisposable
     {
         protected IUnityContainer container;
         protected static Logger logger = LogManager.GetCurrentClassLogger();
         protected IScheduler scheduler;
 
+        protected IDisposable webApp;
+
         public JobController(IUnityContainer container)
         {
             this.container = container;
             var config = container.Resolve<Config>();
+            scheduler = container.Resolve<IScheduler>();
+            if (scheduler == null) throw new NullReferenceException("IScheduler is null!");
             Constructor(config);
         }
 
@@ -41,7 +49,6 @@ namespace CloudBackuper
 
         protected async void Constructor(Config config)
         {
-            scheduler = await InitSheduler();
             var tasks = new List<Task>();
             int index = 0;
 
@@ -71,19 +78,14 @@ namespace CloudBackuper
                 tasks.Add(task);
                 index++;
             }
+
             await Task.WhenAll(tasks);
         }
 
-        protected async Task<IScheduler> InitSheduler()
+        public void Dispose()
         {
-            NameValueCollection props = new NameValueCollection
-            {
-                { "quartz.serializer.type", "binary" }
-            };
-            StdSchedulerFactory factory = new StdSchedulerFactory(props);
-            IScheduler sched = await factory.GetScheduler();
-            await sched.Start();
-            return sched;
+            webApp?.Dispose();
         }
+
     }
 }

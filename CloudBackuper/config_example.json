@@ -1,4 +1,5 @@
 {
+  "HostingURI": "http://localhost:9000",
   "Cloud": {
     "Provider": "https://s3.selcdn.ru",
     "Login": "999999_UserPrefix",

@@ -23,7 +23,7 @@ namespace CloudBackuper
             logger.Info($"Задача №{jobIndex} запущена: {cfgJob.Name}");
 
             var filename = cfgJob.Name.ConvertToValidFilename();
-            filename = DateTime.Now.ToString("yyyy.MM.dd_HH.mm.ss") + $"_{filename}.zip";
+            filename = DateTime.Now.ToString("yyyy.MM.dd/HH.mm.ss") + $"_{filename}.zip";
 
             await Task.Run(() =>
             {

@@ -1,13 +1,20 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CrystalQuartz.Core.SchedulerProviders;
+using CrystalQuartz.Owin;
+using Microsoft.Owin.Hosting;
 using Newtonsoft.Json;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
+using Owin;
+using Quartz;
+using Quartz.Impl;
 using Unity;
 using Unity.Injection;
 
@@ -22,7 +29,7 @@ namespace CloudBackuper
         /// Главная точка входа для приложения.
         /// </summary>
         [STAThread]
-        static void Main()
+        static async Task Main()
         {
             initLogging();
             logger.Warn("Приложение было запущено!");
@@ -39,11 +46,24 @@ namespace CloudBackuper
             Application.SetCompatibleTextRenderingDefault(false);
 
             container.RegisterInstance(config);
+            container.RegisterInstance(await GetScheduler());
             container.RegisterSingleton<AppState>();
+
             // Избегаем ленивой инициализации объектов
             container.RegisterSingleton<JobController>().Resolve<JobController>();
             container.RegisterSingleton<TrayIcon>().Resolve<TrayIcon>();
+            container.RegisterSingleton<WebServer>().Resolve<WebServer>();
+
             Application.Run();
+        }
+
+        static async Task<IScheduler> GetScheduler()
+        {
+            NameValueCollection props = new NameValueCollection { { "quartz.serializer.type", "binary" } };
+            StdSchedulerFactory factory = new StdSchedulerFactory(props);
+            IScheduler scheduler = await factory.GetScheduler();
+            await scheduler.Start();
+            return scheduler;
         }
 
         static void OnCriticalError(Exception ex)
