@@ -20,8 +20,7 @@ namespace CloudBackuper
         {
             scheduler = container.Resolve<IScheduler>();
             var config = container.Resolve<Config>();
-            var uri = config.HostingURI;
-            webApp = WebApp.Start(uri, Start);
+            webApp = WebApp.Start(config.HostingURI, Start);
         }
 
         protected void Start(IAppBuilder app)

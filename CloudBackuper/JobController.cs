@@ -18,13 +18,11 @@ using Unity;
 
 namespace CloudBackuper
 {
-    class JobController : IDisposable
+    class JobController
     {
         protected IUnityContainer container;
         protected static Logger logger = LogManager.GetCurrentClassLogger();
         protected IScheduler scheduler;
-
-        protected IDisposable webApp;
 
         public JobController(IUnityContainer container)
         {
@@ -80,11 +78,6 @@ namespace CloudBackuper
             }
 
             await Task.WhenAll(tasks);
-        }
-
-        public void Dispose()
-        {
-            webApp?.Dispose();
         }
 
     }

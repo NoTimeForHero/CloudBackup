@@ -30,26 +30,54 @@ namespace CloudBackuper
                 logger.Debug("Архивация директории: " + cfgJob.Path);
                 logger.Debug("Маски файлов: " + string.Join(", ", cfgJob.Masks.Masks));
                 logger.Debug("Тип масок: " + (cfgJob.Masks.MasksExclude ? "Whitelist" : "Blacklist"));
+
+                var jobState = new JobState {status = "Построение списка файлов", inProgress = true};
+                dataMap["state"] = jobState;
+
                 var files = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks);
 
-                using (var line = new AppState.Line())
-                {
-                    var s3 = Uploader_S3.GetInstance(cfgCloud);
+                var s3 = Uploader_S3.GetInstance(cfgCloud);
 
-                    using (var zip = new ZipTools(cfgJob.Path, files))
+                using (var zip = new ZipTools(cfgJob.Path, files))
+                {
+                    zip.CreateZip((total, index, name) =>
                     {
-                        zip.CreateZip((total, index, name) =>
-                        {
-                            line.Data = $"Архивация[{index}/{total}]: {name}";
-                        });
-                        s3.UploadFile(zip.Filename, filename, (sender, args) =>
-                        {
-                            line.Data = $"Отправка №{jobIndex+1}: {args.PercentDone}%";
-                        });
-                    }
-                    logger.Info($"Задача №{jobIndex} завершена: {cfgJob.Name}");
+                        jobState.status = $"Архивация файла: {name}";
+                        jobState.current = index;
+                        jobState.total = total;
+                    });
+
+                    jobState.isBytes = true;
+                    s3.UploadFile(zip.Filename, filename, (sender, args) =>
+                    {
+                        jobState.status = $"Отправка архива {filename}";
+                        jobState.current = args.TransferredBytes;
+                        jobState.total = args.TotalBytes;
+                    });
                 }
+
+                jobState.done();
+                logger.Info($"Задача №{jobIndex} завершена: {cfgJob.Name}");
             });
+        }
+    }
+
+    class JobState
+    {
+        public string status;
+        public bool inProgress;
+        public bool isBytes;
+
+        public long current;
+        public long total;
+
+        public void done()
+        {
+            status = "Задача успешно завершена!";
+            inProgress = false;
+            isBytes = false;
+            current = 0;
+            total = 0;
         }
     }
 }

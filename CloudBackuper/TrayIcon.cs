@@ -8,7 +8,6 @@ using System.Threading;
 using System.Windows.Forms;
 using NLog;
 using Unity;
-using Timer = System.Windows.Forms.Timer;
 
 namespace CloudBackuper
 {
@@ -17,21 +16,16 @@ namespace CloudBackuper
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         private string ApplicationName => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title;
-        private readonly int jobsCount;
-        private readonly int statusIndex = 1;
         private readonly MenuItem status;
         private readonly MenuItem[] buttons;
         private readonly NotifyIcon notifyIcon;
         private readonly IUnityContainer container;
-
-        private Timer timer;
 
         public TrayIcon(IUnityContainer container)
         {
             this.container = container;
             status = buildStatus();
             buttons = buildButtons();
-            jobsCount = container.Resolve<Config>().Jobs.Count;
 
             notifyIcon = new NotifyIcon();
             notifyIcon.ContextMenu = GetContextMenu();
@@ -43,44 +37,10 @@ namespace CloudBackuper
         protected ContextMenu GetContextMenu()
         {
             var menu = new ContextMenu();
-            var state = container.Resolve<AppState>();
-            var Lines = state.Status;
-
-            Lines.CollectionChanged += clearLabels;
-            buildMenu(jobsCount);
-
-            timer = new Timer();
-            timer.Tick += updateLabels;
-            timer.Interval = 100;
-            timer.Start();
+            menu.MenuItems.Clear();
+            menu.MenuItems.Add(status);
+            menu.MenuItems.AddRange(buttons);
             return menu;
-
-            void clearLabels(object o, EventArgs ev)
-            {
-                for (int i = 0; i < jobsCount; i++)
-                {
-                    menu.MenuItems[statusIndex + i].Text = "";
-                }
-            }
-
-            void updateLabels(object o, EventArgs ev)
-            {
-                for (int i = 0; i < Lines.Count; i++)
-                {
-                    menu.MenuItems[statusIndex + i].Text = Lines[i].Data;
-                }
-            }
-
-            void buildMenu(int count)
-            {
-                menu.MenuItems.Clear();
-                menu.MenuItems.Add(status);
-                for (var i = 0; i < count; i++)
-                {
-                    menu.MenuItems.Add(new MenuItem { Enabled = false });
-                }
-                menu.MenuItems.AddRange(buttons);
-            }
         }
 
         private MenuItem buildStatus()
@@ -143,7 +103,6 @@ namespace CloudBackuper
 
         public void Dispose()
         {
-            timer?.Dispose();
             notifyIcon?.Dispose();
         }
     }

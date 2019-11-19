@@ -47,7 +47,6 @@ namespace CloudBackuper
 
             container.RegisterInstance(config);
             container.RegisterInstance(await GetScheduler());
-            container.RegisterSingleton<AppState>();
 
             // Избегаем ленивой инициализации объектов
             container.RegisterSingleton<JobController>().Resolve<JobController>();
