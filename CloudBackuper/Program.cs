@@ -4,15 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using CrystalQuartz.Core.SchedulerProviders;
-using CrystalQuartz.Owin;
-using Microsoft.Owin.Hosting;
+using CloudBackuper.Web;
 using Newtonsoft.Json;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
-using Owin;
 using Quartz;
 using Quartz.Impl;
 using Unity;
@@ -22,7 +19,7 @@ namespace CloudBackuper
 {
     static class Program
     {
-        static readonly Logger logger = LogManager.GetLogger("Program");
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public static readonly IUnityContainer container = new UnityContainer();
 
         /// <summary>
@@ -50,7 +47,7 @@ namespace CloudBackuper
 
             // Избегаем ленивой инициализации объектов
             container.RegisterSingleton<JobController>().Resolve<JobController>();
-            container.RegisterSingleton<TrayIcon>().Resolve<TrayIcon>();
+            //container.RegisterSingleton<TrayIcon>().Resolve<TrayIcon>();
             container.RegisterSingleton<WebServer>().Resolve<WebServer>();
 
             Application.Run();

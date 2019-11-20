@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EmbedIO;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace CloudBackuper
