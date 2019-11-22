@@ -5,6 +5,7 @@ using System.Linq;
 using System.ServiceModel.Channels;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using EmbedIO;
 using Quartz;
 using Unity;
@@ -12,6 +13,7 @@ using EmbedIO.Actions;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
 using NLog;
+using Quartz.Impl.Matchers;
 using EmbedServer = EmbedIO.WebServer;
 
 namespace CloudBackuper.Web
@@ -32,7 +34,7 @@ namespace CloudBackuper.Web
                 .WithUrlPrefix(config.HostingURI);
 
             server = new EmbedServer(options)
-                .WithWebApi("/api", m => m.WithController<TestController>())
+                .WithWebApi("/api", m => m.WithController(() => new JobController(scheduler)))
                 .WithModule(new ActionModule("/", HttpVerbs.Any, ctx => ctx.SendDataAsync(new {Message = "Error"})));
 
             server.StateChanged += (s, e) => logger.Debug($"New State: {e.NewState}");
@@ -45,14 +47,52 @@ namespace CloudBackuper.Web
             server.Dispose();
         }
 
-        protected class TestController : WebApiController
+        protected class JobController : WebApiController
         {
-            [Route(HttpVerbs.Any, "/")]
-            public object Index()
+            protected IScheduler scheduler;
+            public JobController(IScheduler scheduler)
             {
-                return new {Message = "Hello world!"};
+                this.scheduler = scheduler;
             }
 
+            [Route(HttpVerbs.Any, "/")]
+            public async Task<object> Index()
+            {
+                var tasksDetail = (await scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()))
+                    .Select(key => scheduler.GetJobDetail(key));
+                var details = await Task.WhenAll(tasksDetail);
+                return details.Select(job => new {
+                    job.Key.Name,
+                    State = job.JobDataMap
+                });
+            }
+
+            [Route(HttpVerbs.Post, "/start/{id}")]
+            public async Task<object> StartJob(int id)
+            {
+                var tasksDetail = (await scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()))
+                    .Select(key => scheduler.GetJobDetail(key));
+                var details = await Task.WhenAll(tasksDetail);
+                var job = details.FirstOrDefault(xJob => xJob.JobDataMap.GetIntValue("index") == id);
+                if (job != null) await scheduler.TriggerJob(job.Key);
+                return job;
+            }
+
+            [Route(HttpVerbs.Delete, "/shutdown")]
+            public object Shutdown()
+            {
+                if (true)
+                {
+                    Response.StatusCode = 400;
+                    return new {Error = "Службу невозможно остановить через веб-интефрейс!"};
+                }
+
+                Application.Exit();
+                return new {Message = "Приложение будет остановлено через несколько секунд!"};
+            }
+
+            // На будущее, если забуду как десериализировать объекты из JSON
+            /*
             [Route(HttpVerbs.Post, "/test")]
             public async Task<DataPerson> Test()
             {
@@ -61,12 +101,8 @@ namespace CloudBackuper.Web
                 data.name += " and bill";
                 return data;
             }
+             */
 
-            public class DataPerson
-            {
-                public int id { get; set; }
-                public string name { get; set; }
-            }
         }
     }
 }

@@ -16,8 +16,8 @@ namespace CloudBackuper
         public async Task Execute(IJobExecutionContext context)
         {
             var dataMap = context.JobDetail.JobDataMap;
+            var cfgCloud = context.Scheduler.Context["cloud"] as Config_S3;
             var jobIndex = (int) dataMap["index"];
-            var cfgCloud = dataMap["cloud"] as Config_S3;
             var cfgJob = dataMap["data"] as Config_Job;
 
             logger.Info($"Задача №{jobIndex} запущена: {cfgJob.Name}");
@@ -25,40 +25,37 @@ namespace CloudBackuper
             var filename = cfgJob.Name.ConvertToValidFilename();
             filename = DateTime.Now.ToString("yyyy.MM.dd/HH.mm.ss") + $"_{filename}.zip";
 
-            await Task.Run(() =>
+            logger.Debug("Архивация директории: " + cfgJob.Path);
+            logger.Debug("Маски файлов: " + string.Join(", ", cfgJob.Masks.Masks));
+            logger.Debug("Тип масок: " + (cfgJob.Masks.MasksExclude ? "Whitelist" : "Blacklist"));
+
+            var jobState = new JobState { status = "Построение списка файлов", inProgress = true };
+            dataMap["state"] = jobState;
+
+            var files = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks);
+
+            var s3 = Uploader_S3.GetInstance(cfgCloud);
+
+            using (var zip = new ZipTools(cfgJob.Path, files))
             {
-                logger.Debug("Архивация директории: " + cfgJob.Path);
-                logger.Debug("Маски файлов: " + string.Join(", ", cfgJob.Masks.Masks));
-                logger.Debug("Тип масок: " + (cfgJob.Masks.MasksExclude ? "Whitelist" : "Blacklist"));
-
-                var jobState = new JobState {status = "Построение списка файлов", inProgress = true};
-                dataMap["state"] = jobState;
-
-                var files = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks);
-
-                var s3 = Uploader_S3.GetInstance(cfgCloud);
-
-                using (var zip = new ZipTools(cfgJob.Path, files))
+                zip.CreateZip((total, index, name) =>
                 {
-                    zip.CreateZip((total, index, name) =>
-                    {
-                        jobState.status = $"Архивация файла: {name}";
-                        jobState.current = index;
-                        jobState.total = total;
-                    });
+                    jobState.status = $"Архивация файла: {name}";
+                    jobState.current = index;
+                    jobState.total = total;
+                });
 
-                    jobState.isBytes = true;
-                    s3.UploadFile(zip.Filename, filename, (sender, args) =>
-                    {
-                        jobState.status = $"Отправка архива {filename}";
-                        jobState.current = args.TransferredBytes;
-                        jobState.total = args.TotalBytes;
-                    });
-                }
+                jobState.isBytes = true;
+                s3.UploadFile(zip.Filename, filename, (sender, args) =>
+                {
+                    jobState.status = $"Отправка архива {filename}";
+                    jobState.current = args.TransferredBytes;
+                    jobState.total = args.TotalBytes;
+                });
+            }
 
-                jobState.done();
-                logger.Info($"Задача №{jobIndex} завершена: {cfgJob.Name}");
-            });
+            jobState.done();
+            logger.Info($"Задача №{jobIndex} завершена: {cfgJob.Name}");
         }
     }
 

@@ -46,13 +46,15 @@ namespace CloudBackuper
             var tasks = new List<Task>();
             int index = 0;
 
+            scheduler.Context["cloud"] = config.Cloud;
+
             foreach (var cfgJog in config.Jobs)
             {
                 var data = new JobDataMap
                 {
                     ["index"] = index,
-                    ["cloud"] = config.Cloud,
-                    ["data"] = cfgJog
+                    ["data"] = cfgJog,
+                    ["state"] = null
                 };
 
                 var job = JobBuilder.Create<UploadJob>()
