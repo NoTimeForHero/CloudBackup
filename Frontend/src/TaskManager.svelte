@@ -1,27 +1,48 @@
 <script>
+	export let settings;
 	import { onMount } from 'svelte';
 
-	let jobs = [
-		{name: 'TEST!'}
-	];
+	let jobs = [];
+	let alert = {
+		class: 'info',
+		message: 'Загрузка данных с сервера...'
+	};
 
 	onMount(async()=> {
-		const data = await fetch('http://localhost:3000/api').then(x => x.json());
-		console.log(Array.isArray(data), data.length) // true, 2
-		data.forEach(x => jobs.push(x));
-		console.log(jobs, jobs.length) // [[],[],[]], 3
+		try {
+			const data = await fetch(settings.apiUrl).then(x => x.json());
+			alert = null;
+			jobs = jobs.concat(data);
+			jobs = jobs; // Svelte need it to refresh array
+		} catch (ex) {
+			alert = { class: 'danger', message: ex }
+		}
 	});
 </script>
 
-<style>
-	p {
-		color: purple;
-		font-size: 2em;
-	}
-</style>
+<style></style>
 
-{#each jobs as job}
-<h1>Job: {job}</h1>
-{/each}
+<div class="row mt-3 d-flex justify-content-center">
 
-<p>&lt;Placeholder for TaskManager&gt;</p>
+	{#if alert}
+	<div class="col-12">
+		<div class="alert {'alert-' + alert.class}" role="alert">{alert.message}</div>	
+	</div>
+	{/if}
+
+	{#each jobs as job}
+		<div class="col-sm-5 m-2">
+			<div class="card">
+				<div class="card-header">
+					Задача: <strong>{job.Key.Name}</strong>
+				</div>
+				<div class="card-body">
+					<button class="btn btn-success">
+						<i class="fa fa-play" aria-hidden="true"></i>&nbsp;Запустить задачу							
+					</button>
+					{JSON.stringify(job.State)}
+				</div>
+			</div>
+		</div>
+	{/each}
+</div>

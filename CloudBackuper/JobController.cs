@@ -65,8 +65,6 @@ namespace CloudBackuper
 
                 var trigger = TriggerBuilder.Create()
                     .WithIdentity(cfgJog.Name)
-                    //.WithSimpleSchedule(x => x.WithIntervalInSeconds(40).RepeatForever())
-                    //.WithCronSchedule("0 * * * * ?")
                     .WithCronSchedule(cfgJog.CronSchedule)
                     .StartNow()
                     .Build();

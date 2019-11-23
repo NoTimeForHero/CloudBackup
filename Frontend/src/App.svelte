@@ -1,9 +1,12 @@
 <script>
+	export let settings;
 	import TaskManager from './TaskManager.svelte';
+	import Settings from './Settings.svelte';
 
 	let menu = [		
 		{ name: 'tasks', title: 'Задачи', component: TaskManager},
-		{ name: 'logs', title: 'Логи', component: null}
+		{ name: 'logs', title: 'Логи', component: null},
+		{ name: 'settings', title: 'Настройки', component: Settings}
 	]
 	let currentTab = menu[0];
 
@@ -11,7 +14,7 @@
 	const setMenu = (item) => currentTab = item;
 </script>
 
-<main>
+<main class="container">
 
 	<nav class="navbar navbar-expand-lg navbar-light">
 	<span class="navbar-brand">CloudBackup</span>
@@ -24,7 +27,7 @@
 	</div>
 	</nav>
 
-	<svelte:component this={currentTab.component}/>
+	<svelte:component this={currentTab.component} settings={settings}/>
 </main>
 
 <style>
@@ -37,7 +40,6 @@
 	}
 
 	main {
-		text-align: center;
 		padding: 1em;
 		margin: 0 auto;
 	}

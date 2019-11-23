@@ -83,7 +83,7 @@ namespace CloudBackuper.Web
             [Route(HttpVerbs.Delete, "/shutdown")]
             public object Shutdown()
             {
-                if (true)
+                if (false)
                 {
                     Response.StatusCode = 400;
                     return new {Error = "Службу невозможно остановить через веб-интефрейс!"};
