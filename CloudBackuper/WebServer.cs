@@ -34,6 +34,7 @@ namespace CloudBackuper.Web
                 .WithUrlPrefix(config.HostingURI);
 
             server = new EmbedServer(options)
+                .WithCors() // TODO: Only for development!!!
                 .WithWebApi("/api", m => m.WithController(() => new JobController(scheduler)))
                 .WithModule(new ActionModule("/", HttpVerbs.Any, ctx => ctx.SendDataAsync(new {Message = "Error"})));
 
