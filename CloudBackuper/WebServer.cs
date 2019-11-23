@@ -58,12 +58,13 @@ namespace CloudBackuper.Web
             [Route(HttpVerbs.Any, "/")]
             public async Task<object> Index()
             {
+                var states = (Dictionary<JobKey, UploadJobState>) scheduler.Context["states"];
                 var tasksDetail = (await scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()))
                     .Select(key => scheduler.GetJobDetail(key));
                 var details = await Task.WhenAll(tasksDetail);
                 return details.Select(job => new {
-                    job.Key.Name,
-                    State = job.JobDataMap
+                    job.Key,
+                    State = states[job.Key]
                 });
             }
 

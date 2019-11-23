@@ -16,9 +16,10 @@ namespace CloudBackuper
 {
     class JobController
     {
-        protected IUnityContainer container;
         protected static Logger logger = LogManager.GetCurrentClassLogger();
+        protected IUnityContainer container;
         protected IScheduler scheduler;
+        protected readonly Dictionary<JobKey, UploadJobState> jobStates = new Dictionary<JobKey, UploadJobState>();
 
         public JobController(IUnityContainer container)
         {
@@ -47,14 +48,14 @@ namespace CloudBackuper
             int index = 0;
 
             scheduler.Context["cloud"] = config.Cloud;
+            scheduler.Context["states"] = jobStates;
 
             foreach (var cfgJog in config.Jobs)
             {
                 var data = new JobDataMap
                 {
                     ["index"] = index,
-                    ["data"] = cfgJog,
-                    ["state"] = null
+                    ["data"] = cfgJog
                 };
 
                 var job = JobBuilder.Create<UploadJob>()
@@ -69,6 +70,8 @@ namespace CloudBackuper
                     .WithCronSchedule(cfgJog.CronSchedule)
                     .StartNow()
                     .Build();
+
+                jobStates.Add(job.Key, new UploadJobState());
 
                 var task = scheduler.ScheduleJob(job, trigger);
                 tasks.Add(task);

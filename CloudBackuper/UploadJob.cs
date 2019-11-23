@@ -13,6 +13,12 @@ namespace CloudBackuper
     {
         protected static readonly Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
+        protected UploadJobState getState(IJobExecutionContext context)
+        {
+            var states = (Dictionary<JobKey, UploadJobState>) context.Scheduler.Context["states"];
+            return states[context.JobDetail.Key];
+        } 
+
         public async Task Execute(IJobExecutionContext context)
         {
             var dataMap = context.JobDetail.JobDataMap;
@@ -29,9 +35,11 @@ namespace CloudBackuper
             logger.Debug("Маски файлов: " + string.Join(", ", cfgJob.Masks.Masks));
             logger.Debug("Тип масок: " + (cfgJob.Masks.MasksExclude ? "Whitelist" : "Blacklist"));
 
-            var jobState = new JobState { status = "Построение списка файлов", inProgress = true };
-            dataMap["state"] = jobState;
+            var jobState = getState(context);
+            jobState.inProgress = true;
+            jobState.status = "Построение списка файлов";
 
+            await Task.Delay(10000);
             var files = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks);
 
             var s3 = Uploader_S3.GetInstance(cfgCloud);
@@ -59,14 +67,14 @@ namespace CloudBackuper
         }
     }
 
-    class JobState
+    class UploadJobState
     {
-        public string status;
-        public bool inProgress;
-        public bool isBytes;
+        public string status { get; set; }
+        public bool inProgress { get; set; }
+        public bool isBytes { get; set; }
 
-        public long current;
-        public long total;
+        public long current { get; set; }
+        public long total { get; set; }
 
         public void done()
         {
