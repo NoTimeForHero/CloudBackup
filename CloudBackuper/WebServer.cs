@@ -69,13 +69,13 @@ namespace CloudBackuper.Web
                 });
             }
 
-            [Route(HttpVerbs.Post, "/start/{id}")]
-            public async Task<object> StartJob(int id)
+            [Route(HttpVerbs.Post, "/start/{name}")]
+            public async Task<object> StartJob(string name)
             {
                 var tasksDetail = (await scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()))
                     .Select(key => scheduler.GetJobDetail(key));
                 var details = await Task.WhenAll(tasksDetail);
-                var job = details.FirstOrDefault(xJob => xJob.JobDataMap.GetIntValue("index") == id);
+                var job = details.FirstOrDefault(xJob => xJob.Key.Name == name);
                 if (job != null) await scheduler.TriggerJob(job.Key);
                 return job;
             }

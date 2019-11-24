@@ -80,7 +80,7 @@ namespace CloudBackuper
             void btnForceRunClick(object sender, EventArgs e)
             {
                 var jobController = container.Resolve<JobController>();
-                jobController.ForceRunJobs();
+                //jobController.ForceRunJobs();
                 MessageBox.Show("Все задачи резервного копирования были принудительно запущены!",
                     "Оповещение", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }

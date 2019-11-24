@@ -67,7 +67,7 @@ namespace CloudBackuper
         }
     }
 
-    class UploadJobState
+    public class UploadJobState
     {
         public string status { get; set; }
         public bool inProgress { get; set; }

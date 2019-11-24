@@ -19,7 +19,6 @@ namespace CloudBackuper
         protected static Logger logger = LogManager.GetCurrentClassLogger();
         protected IUnityContainer container;
         protected IScheduler scheduler;
-        protected readonly Dictionary<JobKey, UploadJobState> jobStates = new Dictionary<JobKey, UploadJobState>();
 
         public JobController(IUnityContainer container)
         {
@@ -30,25 +29,13 @@ namespace CloudBackuper
             Constructor(config);
         }
 
-        public async void ForceRunJobs()
-        {
-            var tasks = new List<Task>();
-            var jobs = await scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup());
-            foreach (var job in jobs)
-            {
-                logger.Info($"Ручной запуск задачи '{job.Name}' из группы '{job.Group}");
-                tasks.Add(scheduler.TriggerJob(job));
-            }
-            await Task.WhenAll(tasks);
-        }
-
         protected async void Constructor(Config config)
         {
             var tasks = new List<Task>();
             int index = 0;
 
+            var jobStates = (Dictionary<JobKey, UploadJobState>) scheduler.Context["states"];
             scheduler.Context["cloud"] = config.Cloud;
-            scheduler.Context["states"] = jobStates;
 
             foreach (var cfgJog in config.Jobs)
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace CloudBackuper
             Application.SetCompatibleTextRenderingDefault(false);
 
             container.RegisterInstance(config);
-            container.RegisterInstance(await GetScheduler());
+            container.RegisterInstance(await Initializer.GetScheduler());
 
             // Избегаем ленивой инициализации объектов
             container.RegisterSingleton<JobController>().Resolve<JobController>();
@@ -51,15 +52,6 @@ namespace CloudBackuper
             container.RegisterSingleton<WebServer>().Resolve<WebServer>();
 
             Application.Run();
-        }
-
-        static async Task<IScheduler> GetScheduler()
-        {
-            NameValueCollection props = new NameValueCollection { { "quartz.serializer.type", "binary" } };
-            StdSchedulerFactory factory = new StdSchedulerFactory(props);
-            IScheduler scheduler = await factory.GetScheduler();
-            await scheduler.Start();
-            return scheduler;
         }
 
         static void OnCriticalError(Exception ex)
@@ -115,6 +107,19 @@ namespace CloudBackuper
 
             if (webService != null) logger.Info($"Отправка логов: {webService.Url}");
             logger.Info($"Установлен LogLevel: {settings.LogLevel}");
+        }
+    }
+
+    public class Initializer
+    {
+        public static async Task<IScheduler> GetScheduler()
+        {
+            NameValueCollection props = new NameValueCollection { { "quartz.serializer.type", "binary" } };
+            StdSchedulerFactory factory = new StdSchedulerFactory(props);
+            IScheduler scheduler = await factory.GetScheduler();
+            await scheduler.Start();
+            scheduler.Context["states"] = new Dictionary<JobKey, UploadJobState>();
+            return scheduler;
         }
     }
 }
