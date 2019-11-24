@@ -68,11 +68,13 @@ namespace CloudBackuper
         {
             var config = new LoggingConfiguration();
 
-            var logfile = new FileTarget("logfile") { FileName = "debug.log" };
-            var logconsole = new ConsoleTarget("logconsole");
+            var logFile = new FileTarget("logfile") { FileName = "debug.log" };
+            var logConsole = new ConsoleTarget("logconsole");
+            var logMemory = new MemoryTarget("logmemory") {MaxLogsCount = 5000};
 
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, logfile);
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, logConsole);
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, logFile);
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, logMemory);
 
             LogManager.Configuration = config;
         }

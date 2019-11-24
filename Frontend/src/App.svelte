@@ -1,11 +1,12 @@
 <script>
 	export let settings;
+	import Logs from './Logs.svelte';
 	import TaskManager from './TaskManager.svelte';
 	import Settings from './Settings.svelte';
 
 	let menu = [		
 		{ name: 'tasks', title: 'Задачи', component: TaskManager},
-		{ name: 'logs', title: 'Логи', component: null},
+		{ name: 'logs', title: 'Логи', component: Logs},
 		{ name: 'settings', title: 'Настройки', component: Settings}
 	]
 	let currentTab = menu[0];

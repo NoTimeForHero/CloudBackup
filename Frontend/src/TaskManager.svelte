@@ -15,13 +15,13 @@
 
 	const btnStart = async(job) => {
 		const jobName = encodeURIComponent(job.Key.Name);
-		const res = await fetch(settings.apiUrl + '/start/' + jobName, {method: 'POST'});
+		const res = await fetch(settings.apiUrl + '/jobs/start/' + jobName, {method: 'POST'});
 		document.location.reload();
 	}
 
 	async function updateJobs() {
 		try {
-			jobs = await fetch(settings.apiUrl).then(x => x.json())
+			jobs = await fetch(settings.apiUrl + '/jobs').then(x => x.json())
 			alert = null;
 		} catch (ex) {
 			jobs = [];

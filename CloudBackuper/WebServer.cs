@@ -13,6 +13,7 @@ using EmbedIO.Actions;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
 using NLog;
+using NLog.Targets;
 using Quartz.Impl.Matchers;
 using EmbedServer = EmbedIO.WebServer;
 
@@ -50,13 +51,22 @@ namespace CloudBackuper.Web
 
         protected class JobController : WebApiController
         {
+            protected MemoryTarget memoryTarget;
             protected IScheduler scheduler;
+
             public JobController(IScheduler scheduler)
             {
+                memoryTarget = LogManager.Configuration.AllTargets.OfType<MemoryTarget>().FirstOrDefault();
                 this.scheduler = scheduler;
             }
 
-            [Route(HttpVerbs.Any, "/")]
+            [Route(HttpVerbs.Any, "/logs")]
+            public IEnumerable<string> Logs()
+            {
+                return memoryTarget?.Logs.Reverse();
+            }
+
+            [Route(HttpVerbs.Any, "/jobs")]
             public async Task<object> Index()
             {
                 var states = (Dictionary<JobKey, UploadJobState>) scheduler.Context["states"];
@@ -69,7 +79,7 @@ namespace CloudBackuper.Web
                 });
             }
 
-            [Route(HttpVerbs.Post, "/start/{name}")]
+            [Route(HttpVerbs.Post, "/jobs/start/{name}")]
             public async Task<object> StartJob(string name)
             {
                 var tasksDetail = (await scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()))

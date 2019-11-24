@@ -21,12 +21,12 @@ namespace TestFrontend
         static async Task Main(string[] args)
         {
             var logCfg = new LoggingConfiguration();
-            logCfg.AddRule(LogLevel.Trace, LogLevel.Fatal, new ConsoleTarget("logconsole"));
+            logCfg.AddRuleForAllLevels(new MemoryTarget("logmemory"));
+            logCfg.AddRuleForAllLevels(new ConsoleTarget("logconsole"));
             LogManager.Configuration = logCfg;
             LogManager.ReconfigExistingLoggers();
 
             var scheduler = await Initializer.GetScheduler();
-
             container.RegisterInstance(new CloudBackuper.Config());
             container.RegisterInstance(scheduler);
             for (int i = 0; i < 10; i++) FakeJob.AddJob(scheduler, $"TestJob{i}");
@@ -35,9 +35,34 @@ namespace TestFrontend
             Console.WriteLine("Для выхода напишите 'quit'.");
             while (true)
             {
+                bool exit = false;
                 var line = Console.ReadLine();
-                if (line != null && line.Trim() == "quit") break;
-                logger.Info(line);
+                if (line == null) continue;
+
+                switch (line.Trim())
+                {
+                    case "test":
+                        logger.Trace("Example trace message");
+                        logger.Debug("Example debug message");
+                        logger.Info("Example info message");
+                        logger.Warn("Example warning message");
+                        logger.Error("Example error message");
+                        logger.Fatal("Example fatal message");
+                        break;
+                    case "help":
+                        logger.Info("test - тест логгинга");
+                        logger.Info("help - помощь");
+                        logger.Info("quit - выход");
+                        break;
+                    case "quit":
+                        exit = true;
+                        break;
+                    default:
+                        logger.Info("Неизвестная команда!");
+                        break;
+                }
+
+                if (exit) break;
             }
         }
     }
