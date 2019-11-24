@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reflection;
 using System.ServiceModel.Channels;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,10 +35,18 @@ namespace CloudBackuper.Web
                 .WithMode(HttpListenerMode.EmbedIO)
                 .WithUrlPrefix(config.HostingURI);
 
+            var frontendSettings = new
+            {
+                appName = getApplicationName(),
+                apiUrl = $"{config.HostingURI}/api",
+                isService = true
+            };
+
             server = new EmbedServer(options)
-                .WithCors() // TODO: Only for development!!!
+                //.WithCors() // TODO: Only for development!!!
                 .WithWebApi("/api", m => m.WithController(() => new JobController(scheduler)))
-                .WithModule(new ActionModule("/", HttpVerbs.Any, ctx => ctx.SendDataAsync(new {Message = "Error"})));
+                .WithModule(new ActionModule("/settings.json", HttpVerbs.Get, ctx => ctx.SendDataAsync(frontendSettings)))
+                .WithStaticFolder("/", "./WebApp", true);
 
             server.StateChanged += (s, e) => logger.Debug($"New State: {e.NewState}");
 
@@ -47,6 +56,14 @@ namespace CloudBackuper.Web
         public void Dispose()
         {
             server.Dispose();
+        }
+
+        protected static string getApplicationName()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var title = assembly.GetCustomAttribute<AssemblyTitleAttribute>().Title;
+            var version = assembly.GetName().Version;
+            return $"{title} {version}";
         }
 
         protected class JobController : WebApiController

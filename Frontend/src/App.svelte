@@ -18,7 +18,7 @@
 <main class="container">
 
 	<nav class="navbar navbar-expand-lg navbar-light">
-	<span class="navbar-brand">CloudBackup</span>
+	<span class="navbar-brand">{settings.appName}</span>
 	<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
 		<div class="navbar-nav">
 			{#each menu as item}
