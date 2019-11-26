@@ -38,18 +38,23 @@ namespace CloudBackuper
 
             string json = File.ReadAllText("config.json");
             Config config = JsonConvert.DeserializeObject<Config>(json);
-             applyLoggingSettings(config.Logging);
+            applyLoggingSettings(config.Logging);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            container.RegisterInstance(config);
-            container.RegisterInstance(await Initializer.GetScheduler());
+            var scheduler = await Initializer.GetScheduler(config);
+            if (config.JobRetrying != null)
+            {
+                var listener = new JobFailureHandler(config.JobRetrying.MaxRetries, config.JobRetrying.WaitSeconds * 1000);
+                scheduler.ListenerManager.AddJobListener(listener);
+            }
 
-            // Избегаем ленивой инициализации объектов
-            container.RegisterSingleton<JobController>().Resolve<JobController>();
-            //container.RegisterSingleton<TrayIcon>().Resolve<TrayIcon>();
-            container.RegisterSingleton<WebServer>().Resolve<WebServer>();
+            container.RegisterInstance(config);
+            container.RegisterInstance(scheduler);
+
+            new JobController(container);
+            new WebServer(container);
 
             Application.Run();
         }
@@ -114,13 +119,14 @@ namespace CloudBackuper
 
     public class Initializer
     {
-        public static async Task<IScheduler> GetScheduler()
+        public static async Task<IScheduler> GetScheduler(Config config)
         {
             NameValueCollection props = new NameValueCollection { { "quartz.serializer.type", "binary" } };
             StdSchedulerFactory factory = new StdSchedulerFactory(props);
             IScheduler scheduler = await factory.GetScheduler();
             await scheduler.Start();
             scheduler.Context["states"] = new Dictionary<JobKey, UploadJobState>();
+            scheduler.Context["config"] = config;
             return scheduler;
         }
     }

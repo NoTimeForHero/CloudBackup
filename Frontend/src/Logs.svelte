@@ -16,6 +16,7 @@ $: styleForLine = (line) => {
         case 'WARN':
             return 'log-warn';
         case 'FATAL':
+            return 'log-error bold';
         case 'ERROR':
             return 'log-error';            
     }
@@ -41,6 +42,11 @@ onMount(loadLog);
 </script>
 
 <style>
+
+.bold {
+    font-weight: bold;
+}
+
 .log-debug {
     color: lightslategrey;
 }

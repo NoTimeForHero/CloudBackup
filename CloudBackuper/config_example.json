@@ -26,6 +26,10 @@
       "retryDelayMilliseconds": 2000
     }
   },
+  "JobRetrying": {
+    "MaxRetries": 3,
+    "WaitSeconds": 600
+  },
   "Jobs": [
     {
       "Name": "Backup system files",

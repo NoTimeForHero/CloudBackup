@@ -35,7 +35,6 @@ namespace CloudBackuper
             int index = 0;
 
             var jobStates = (Dictionary<JobKey, UploadJobState>) scheduler.Context["states"];
-            scheduler.Context["cloud"] = config.Cloud;
 
             foreach (var cfgJog in config.Jobs)
             {

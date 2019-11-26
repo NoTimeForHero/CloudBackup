@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using NLog;
 using Quartz;
@@ -8,7 +9,69 @@ using Unity;
 
 namespace CloudBackuper
 {
+
+    public class JobFailureHandler : IJobListener
+    {
+        protected static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        protected const string retryKey = "retries";
+        protected readonly int waitMs;
+        protected readonly int maxRetries;
+
+        public event Action retriesFailed;
+        public event Action<Exception> onError;
+
+        public JobFailureHandler(int maxRetries, int waitMs)
+        {
+            this.maxRetries = maxRetries;
+            this.waitMs = waitMs;
+        }
+
+        public string Name => "JobFailureListener";
+        public Task JobExecutionVetoed(IJobExecutionContext context, CancellationToken cancellationToken = new CancellationToken()) => Task.CompletedTask;
+
+        public Task JobToBeExecuted(IJobExecutionContext context, CancellationToken cancellationToken = new CancellationToken())
+        {
+            logger.Trace("JobToBeExecuted");
+            var data = context.JobDetail.JobDataMap;
+            if (!data.ContainsKey(retryKey)) data[retryKey] = 0;
+            data[retryKey] = (int)data[retryKey] + 1;
+            return Task.CompletedTask;
+        }
+
+        public async Task JobWasExecuted(IJobExecutionContext context, JobExecutionException jobException, CancellationToken cancellationToken = new CancellationToken())
+        {
+            logger.Trace("JobWasExecuted");
+            var data = context.JobDetail.JobDataMap;
+            var exception = jobException?.InnerException?.InnerException;
+            if (exception == null)
+            {
+                data[retryKey] = 0;
+                return;
+            }
+
+            onError?.Invoke(exception);
+            logger.Error($"Задача '{context.JobDetail.Key.Name}' кинула ошибку {exception.GetType().FullName}!");
+            logger.Error("Сообщение: " + exception.Message);
+            logger.Error(exception.StackTrace);
+
+            if ((int)data[retryKey] >= maxRetries)
+            {
+                logger.Fatal($"Задача '{context.JobDetail.Key.Name}' не была выполнена за {maxRetries} попыток!");
+                data[retryKey] = 0;
+                retriesFailed?.Invoke();
+                return;
+            }
+
+            var trigger = TriggerBuilder.Create()
+                .WithIdentity("Retry_" + Guid.NewGuid())
+                .StartAt(DateTime.Now.AddMilliseconds(waitMs))
+                .Build();
+            await context.Scheduler.RescheduleJob(context.Trigger.Key, trigger, cancellationToken);
+        }
+    }
+
     [DisallowConcurrentExecution]
+    [PersistJobDataAfterExecution]
     class UploadJob : IJob
     {
         protected static readonly Logger logger = NLog.LogManager.GetCurrentClassLogger();
@@ -22,7 +85,7 @@ namespace CloudBackuper
         public async Task Execute(IJobExecutionContext context)
         {
             var dataMap = context.JobDetail.JobDataMap;
-            var cfgCloud = context.Scheduler.Context["cloud"] as Config_S3;
+            var cfgCloud = (context.Scheduler.Context["config"] as Config)?.Cloud;
             var jobIndex = (int) dataMap["index"];
             var cfgJob = dataMap["data"] as Config_Job;
 
@@ -39,7 +102,6 @@ namespace CloudBackuper
             jobState.inProgress = true;
             jobState.status = "Построение списка файлов";
 
-            await Task.Delay(10000);
             var files = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks);
 
             var s3 = Uploader_S3.GetInstance(cfgCloud);

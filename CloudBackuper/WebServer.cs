@@ -26,7 +26,7 @@ namespace CloudBackuper.Web
         protected IScheduler scheduler;
         protected EmbedServer server;
 
-        public WebServer(IUnityContainer container)
+        public WebServer(IUnityContainer container, bool developmentMode=false)
         {
             var config = container.Resolve<Config>();
             scheduler = container.Resolve<IScheduler>();
@@ -42,9 +42,10 @@ namespace CloudBackuper.Web
                 isService = true
             };
 
-            server = new EmbedServer(options)
-                //.WithCors() // TODO: Only for development!!!
-                .WithWebApi("/api", m => m.WithController(() => new JobController(scheduler)))
+            server = new EmbedServer(options);
+            if (developmentMode) server.WithCors();
+
+            server.WithWebApi("/api", m => m.WithController(() => new JobController(scheduler)))
                 .WithModule(new ActionModule("/settings.json", HttpVerbs.Get, ctx => ctx.SendDataAsync(frontendSettings)))
                 .WithStaticFolder("/", "./WebApp", true);
 

@@ -14,6 +14,7 @@ namespace CloudBackuper
     public class Config
     {
         public Config_S3 Cloud { get; set; }
+        public Config_JobRetrying JobRetrying { get; set; }
         public List<Config_Job> Jobs { get; set; }
         public string HostingURI { get; set; } = "http://localhost:3000";
 
@@ -32,6 +33,11 @@ namespace CloudBackuper
         };
     }
 
+    public class Config_JobRetrying
+    {
+        public int MaxRetries;
+        public int WaitSeconds;
+    }
 
     public class Config_S3
     {

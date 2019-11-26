@@ -26,11 +26,14 @@ namespace TestFrontend
             LogManager.Configuration = logCfg;
             LogManager.ReconfigExistingLoggers();
 
-            var scheduler = await Initializer.GetScheduler();
-            container.RegisterInstance(new CloudBackuper.Config());
+            var config = new CloudBackuper.Config();
+            var scheduler = await Initializer.GetScheduler(config);
+            scheduler.ListenerManager.AddJobListener(new JobFailureHandler(3, 300));
+
+            container.RegisterInstance(config);
             container.RegisterInstance(scheduler);
             for (int i = 0; i < 10; i++) FakeJob.AddJob(scheduler, $"TestJob{i}");
-            container.RegisterSingleton<WebServer>().Resolve<WebServer>();
+            container.RegisterFactory<WebServer>(x => new WebServer(x, true)).Resolve<WebServer>();
 
             Console.WriteLine("Для выхода напишите 'quit'.");
             while (true)
@@ -68,6 +71,7 @@ namespace TestFrontend
     }
 
     [DisallowConcurrentExecution]
+    [PersistJobDataAfterExecution]
     class FakeJob : IJob
     {
         protected static readonly Random rnd = new Random();
@@ -98,6 +102,8 @@ namespace TestFrontend
 
         public async Task Execute(IJobExecutionContext context)
         {
+            if (rnd.Next(1, 100) > 60) throw new AccessViolationException("Something failed?");
+
             logger.Info("Job has been started!");
             var jobState = getState(context);
 
