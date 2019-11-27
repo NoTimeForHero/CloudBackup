@@ -35,8 +35,8 @@ namespace CloudBackuper
 
     public class Config_JobRetrying
     {
-        public int MaxRetries;
-        public int WaitSeconds;
+        public int MaxRetries { get; set; }
+        public int WaitSeconds { get; set; }
     }
 
     public class Config_S3

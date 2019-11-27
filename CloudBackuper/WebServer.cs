@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.ServiceModel.Channels;
 using System.Text;
@@ -32,7 +33,7 @@ namespace CloudBackuper.Web
             scheduler = container.Resolve<IScheduler>();
 
             var options = new WebServerOptions()
-                .WithMode(HttpListenerMode.EmbedIO)
+                .WithMode(HttpListenerMode.Microsoft)
                 .WithUrlPrefix(config.HostingURI);
 
             var frontendSettings = new
@@ -43,6 +44,13 @@ namespace CloudBackuper.Web
             };
 
             server = new EmbedServer(options);
+
+            // Из-за отсутствия обработчика ошибок в EmbedIO приходится использовать такой странный способ проверки занятости префикса
+            // Конкретнее: https://github.com/unosquare/embedio/blob/3.1.3/src/EmbedIO/WebServerBase%601.cs#L208
+            // Проверяется только токен отмены, а все ошибки включая запуск HttpListener будут проигнорированы без всякого сообщения
+            server.Listener.Start();
+            server.Listener.Stop();
+
             if (developmentMode) server.WithCors();
 
             server.WithWebApi("/api", m => m.WithController(() => new JobController(scheduler)))
@@ -51,7 +59,7 @@ namespace CloudBackuper.Web
 
             server.StateChanged += (s, e) => logger.Debug($"New State: {e.NewState}");
 
-            server.Start();
+            server.RunAsync();
         }
 
         public void Dispose()
