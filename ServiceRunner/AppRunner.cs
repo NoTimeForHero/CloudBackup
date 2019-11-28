@@ -23,6 +23,7 @@ namespace ServiceRunner
         protected override void OnStop()
         {
             program.Shutdown();
+            program.Dispose();
         }
     }
 }

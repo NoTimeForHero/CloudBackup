@@ -87,11 +87,13 @@ namespace CloudBackuper
             webServer?.Dispose();
             waitShutdown.Set();
             container.Dispose();
+            LogManager.Flush();
             LogManager.Shutdown();
         }
 
         public void Shutdown()
         {
+            logger.Warn("Получен сигнал к завершению приложения!");
             waitShutdown.Set();
         }
     }
