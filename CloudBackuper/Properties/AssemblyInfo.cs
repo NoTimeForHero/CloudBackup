@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // набора атрибутов. Измените значения этих атрибутов, чтобы изменить сведения,
 // связанные со сборкой.
 [assembly: AssemblyTitle("CloudBackup")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Утилита резервного копирования файлов по расписанию в S3 облако")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NoTimeForHero")]
 [assembly: AssemblyProduct("CloudBackup")]
@@ -31,5 +31,5 @@ using System.Runtime.InteropServices;
 // Можно задать все значения или принять номер сборки и номер редакции по умолчанию.
 // используя "*", как показано ниже:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.3.2.1")]
-[assembly: AssemblyFileVersion("1.3.2.1")]
+[assembly: AssemblyVersion("2.0.0.1")]
+[assembly: AssemblyFileVersion("2.0.0.1")]

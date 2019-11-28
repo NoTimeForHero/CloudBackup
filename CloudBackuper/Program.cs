@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CloudBackuper.Web;
@@ -37,6 +38,11 @@ namespace CloudBackuper
             }
         }
 
+        public static string Title => Assembly.GetAssembly(typeof(Program)).GetTitle("CloudBackup");
+        public static string Description => Assembly.GetAssembly(typeof(Program)).GetDescription("CloudBackup Description");
+
+        private string AppPath => Path.GetDirectoryName(Assembly.GetAssembly(GetType()).Location);
+
         public Program()
         {
             Initializer.initLogging();
@@ -45,7 +51,11 @@ namespace CloudBackuper
             TaskScheduler.UnobservedTaskException += (o, ev) => Initializer.OnCriticalError(ev.Exception);
             AppDomain.CurrentDomain.UnhandledException += (o, ev) => Initializer.OnCriticalError(ev.ExceptionObject as Exception);
 
-            string json = File.ReadAllText("config.json");
+            var appDir = AppPath;
+            if (appDir == null) throw new ArgumentException("Invalid path to assembly!");
+            logger.Info($"Каталог откуда запущено приложение: {appDir}");
+
+            string json = File.ReadAllText(Path.Combine(appDir, "config.json"));
             config = JsonConvert.DeserializeObject<Config>(json);
             Initializer.applyLoggingSettings(config.Logging);
         }
@@ -64,7 +74,9 @@ namespace CloudBackuper
             if (shutdown != null) container.RegisterInstance(shutdown);
 
             new JobController(container);
-            webServer = new WebServer(container);
+            var staticFilesPath = Path.Combine(AppPath, "WebApp");
+            logger.Debug($"Путь до папки со статикой: {staticFilesPath}");
+            webServer = new WebServer(container, staticFilesPath);
 
             waitShutdown.WaitOne();
         }

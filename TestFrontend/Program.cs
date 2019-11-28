@@ -32,7 +32,7 @@ namespace TestFrontend
             container.RegisterInstance(scheduler);
             for (int i = 0; i < 10; i++) FakeJob.AddJob(scheduler, $"TestJob{i}");
 
-            new WebServer(container, true);
+            new WebServer(container, developmentMode: true);
 
             Console.WriteLine("Для выхода напишите 'quit'.");
             while (true)
