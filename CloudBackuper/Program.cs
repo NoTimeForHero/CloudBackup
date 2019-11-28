@@ -3,23 +3,22 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using CloudBackuper.Web;
 using Newtonsoft.Json;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
-using NLog.Targets.Wrappers;
 using Quartz;
 using Quartz.Impl;
 using Unity;
-using Unity.Injection;
 
 namespace CloudBackuper
 {
-    static class Program
+    public sealed class Program
     {
+        private static readonly AutoResetEvent waitShutdown = new AutoResetEvent(false);
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public static readonly IUnityContainer container = new UnityContainer();
 
@@ -29,19 +28,16 @@ namespace CloudBackuper
         [STAThread]
         static async Task Main()
         {
-            initLogging();
+            Initializer.initLogging();
             logger.Warn("Приложение было запущено!");
 
-            TaskScheduler.UnobservedTaskException += (o, ev) => OnCriticalError(ev.Exception);
-            AppDomain.CurrentDomain.UnhandledException += (o, ev) => OnCriticalError(ev.ExceptionObject as Exception);
-            Application.ApplicationExit += (o, ev) => logger.Warn("Приложение было закрыто!");
+            TaskScheduler.UnobservedTaskException += (o, ev) => Initializer.OnCriticalError(ev.Exception);
+            AppDomain.CurrentDomain.UnhandledException += (o, ev) => Initializer.OnCriticalError(ev.ExceptionObject as Exception);
+            AppDomain.CurrentDomain.ProcessExit += (o, ev) => logger.Warn("Приложение было закрыто!");
 
             string json = File.ReadAllText("config.json");
             Config config = JsonConvert.DeserializeObject<Config>(json);
-            applyLoggingSettings(config.Logging);
-
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            Initializer.applyLoggingSettings(config.Logging);
 
             var scheduler = await Initializer.GetScheduler(config);
             if (config.JobRetrying != null)
@@ -55,27 +51,40 @@ namespace CloudBackuper
 
             new JobController(container);
             new WebServer(container);
+            waitShutdown.WaitOne();
+        }
+    }
 
-            Application.Run();
+    public class Initializer
+    {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+        public static async Task<IScheduler> GetScheduler(Config config)
+        {
+            NameValueCollection props = new NameValueCollection { { "quartz.serializer.type", "binary" } };
+            StdSchedulerFactory factory = new StdSchedulerFactory(props);
+            IScheduler scheduler = await factory.GetScheduler();
+            await scheduler.Start();
+            scheduler.Context["states"] = new Dictionary<JobKey, UploadJobState>();
+            scheduler.Context["config"] = config;
+            return scheduler;
         }
 
-        static void OnCriticalError(Exception ex)
+        public static void OnCriticalError(Exception ex)
         {
             string message = "Необработанная критическая ошибка! Приложение будет закрыто!";
             logger.Fatal(message);
             logger.Fatal(ex.Message);
             logger.Fatal(ex.ToString());
-
-            MessageBox.Show($"{message}\n\n{ex.Message}", "Критическая ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        static void initLogging()
+        public static void initLogging()
         {
             var config = new LoggingConfiguration();
 
             var logFile = new FileTarget("logfile") { FileName = "debug.log" };
             var logConsole = new ConsoleTarget("logconsole");
-            var logMemory = new MemoryTarget("logmemory") {MaxLogsCount = 5000};
+            var logMemory = new MemoryTarget("logmemory") { MaxLogsCount = 5000 };
 
             config.AddRule(LogLevel.Info, LogLevel.Fatal, logConsole);
             config.AddRule(LogLevel.Info, LogLevel.Fatal, logFile);
@@ -84,7 +93,7 @@ namespace CloudBackuper
             LogManager.Configuration = config;
         }
 
-        static void applyLoggingSettings(Config_Logging settings)
+        public static void applyLoggingSettings(Config_Logging settings)
         {
             var config = LogManager.Configuration;
             settings = settings ?? Config_Logging.Defaults;
@@ -114,20 +123,6 @@ namespace CloudBackuper
 
             if (webService != null) logger.Info($"Отправка логов: {webService.Url}");
             logger.Info($"Установлен LogLevel: {settings.LogLevel}");
-        }
-    }
-
-    public class Initializer
-    {
-        public static async Task<IScheduler> GetScheduler(Config config)
-        {
-            NameValueCollection props = new NameValueCollection { { "quartz.serializer.type", "binary" } };
-            StdSchedulerFactory factory = new StdSchedulerFactory(props);
-            IScheduler scheduler = await factory.GetScheduler();
-            await scheduler.Start();
-            scheduler.Context["states"] = new Dictionary<JobKey, UploadJobState>();
-            scheduler.Context["config"] = config;
-            return scheduler;
         }
     }
 }

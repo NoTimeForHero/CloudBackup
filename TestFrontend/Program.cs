@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using CloudBackuper;
 using CloudBackuper.Web;
@@ -33,7 +31,8 @@ namespace TestFrontend
             container.RegisterInstance(config);
             container.RegisterInstance(scheduler);
             for (int i = 0; i < 10; i++) FakeJob.AddJob(scheduler, $"TestJob{i}");
-            container.RegisterFactory<WebServer>(x => new WebServer(x, true)).Resolve<WebServer>();
+
+            new WebServer(container, true, true);
 
             Console.WriteLine("Для выхода напишите 'quit'.");
             while (true)

@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CloudBackuper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NLog;
-using NLog.Config;
-using NLog.Targets;
 using Quartz;
 
 namespace Tests

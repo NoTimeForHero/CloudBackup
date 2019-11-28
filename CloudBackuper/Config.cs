@@ -4,8 +4,6 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
-using NLog.Config;
-using NLog.Fluent;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 
