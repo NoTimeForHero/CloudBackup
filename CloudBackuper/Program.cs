@@ -16,29 +16,42 @@ using Unity;
 
 namespace CloudBackuper
 {
-    public sealed class Program
+    public sealed class Program : IDisposable, IShutdown
     {
-        private static readonly AutoResetEvent waitShutdown = new AutoResetEvent(false);
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        public static readonly IUnityContainer container = new UnityContainer();
+        private readonly AutoResetEvent waitShutdown = new AutoResetEvent(false);
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private readonly IUnityContainer container = new UnityContainer();
+        private readonly Config config;
+
+        private WebServer webServer;
 
         /// <summary>
         /// Главная точка входа для приложения.
         /// </summary>
         [STAThread]
-        static async Task Main()
+        static void Main()
+        {
+            using (var program = new Program())
+            {
+                program.Run(program);
+            }
+        }
+
+        public Program()
         {
             Initializer.initLogging();
             logger.Warn("Приложение было запущено!");
 
             TaskScheduler.UnobservedTaskException += (o, ev) => Initializer.OnCriticalError(ev.Exception);
             AppDomain.CurrentDomain.UnhandledException += (o, ev) => Initializer.OnCriticalError(ev.ExceptionObject as Exception);
-            AppDomain.CurrentDomain.ProcessExit += (o, ev) => logger.Warn("Приложение было закрыто!");
 
             string json = File.ReadAllText("config.json");
-            Config config = JsonConvert.DeserializeObject<Config>(json);
+            config = JsonConvert.DeserializeObject<Config>(json);
             Initializer.applyLoggingSettings(config.Logging);
+        }
 
+        public async void Run(IShutdown shutdown)
+        {
             var scheduler = await Initializer.GetScheduler(config);
             if (config.JobRetrying != null)
             {
@@ -48,11 +61,32 @@ namespace CloudBackuper
 
             container.RegisterInstance(config);
             container.RegisterInstance(scheduler);
+            if (shutdown != null) container.RegisterInstance(shutdown);
 
             new JobController(container);
-            new WebServer(container);
+            webServer = new WebServer(container);
+
             waitShutdown.WaitOne();
         }
+
+        public void Dispose()
+        {
+            logger.Warn("Приложение было закрыто!");
+            webServer?.Dispose();
+            waitShutdown.Set();
+            container.Dispose();
+            LogManager.Shutdown();
+        }
+
+        public void Shutdown()
+        {
+            waitShutdown.Set();
+        }
+    }
+
+    public interface IShutdown
+    {
+        void Shutdown();
     }
 
     public class Initializer

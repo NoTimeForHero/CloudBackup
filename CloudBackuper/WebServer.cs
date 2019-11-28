@@ -19,13 +19,15 @@ namespace CloudBackuper.Web
     public class WebServer : IDisposable
     {
         protected ILogger logger = LogManager.GetCurrentClassLogger();
+        protected IShutdown shutdown;
         protected IScheduler scheduler;
         protected EmbedServer server;
 
-        public WebServer(IUnityContainer container, bool isService=false, bool developmentMode=false)
+        public WebServer(IUnityContainer container, bool developmentMode=false)
         {
             var config = container.Resolve<Config>();
             scheduler = container.Resolve<IScheduler>();
+            shutdown = container.IsRegistered<IShutdown>() ? container.Resolve<IShutdown>() : null;
 
             var options = new WebServerOptions()
                 .WithMode(HttpListenerMode.Microsoft)
@@ -35,7 +37,7 @@ namespace CloudBackuper.Web
             {
                 appName = getApplicationName(),
                 apiUrl = $"{config.HostingURI}/api",
-                isService
+                isService = shutdown == null
             };
 
             server = new EmbedServer(options);
@@ -48,7 +50,7 @@ namespace CloudBackuper.Web
 
             if (developmentMode) server.WithCors();
 
-            server.WithWebApi("/api", m => m.WithController(() => new JobController(isService, scheduler)))
+            server.WithWebApi("/api", m => m.WithController(() => new JobController(shutdown, scheduler)))
                 .WithModule(new ActionModule("/settings.json", HttpVerbs.Get, ctx => ctx.SendDataAsync(frontendSettings)))
                 .WithStaticFolder("/", "./WebApp", true);
 
@@ -72,15 +74,15 @@ namespace CloudBackuper.Web
 
         protected class JobController : WebApiController
         {
-            protected bool isService;
             protected MemoryTarget memoryTarget;
+            protected IShutdown shutdown;
             protected IScheduler scheduler;
 
-            public JobController(bool isService, IScheduler scheduler)
+            public JobController(IShutdown shutdown, IScheduler scheduler)
             {
                 memoryTarget = LogManager.Configuration.AllTargets.OfType<MemoryTarget>().FirstOrDefault();
                 this.scheduler = scheduler;
-                this.isService = isService;
+                this.shutdown = shutdown;
             }
 
             [Route(HttpVerbs.Any, "/logs")]
@@ -116,7 +118,7 @@ namespace CloudBackuper.Web
             [Route(HttpVerbs.Delete, "/shutdown")]
             public object Shutdown()
             {
-                if (isService)
+                if (shutdown == null)
                 {
                     Response.StatusCode = 400;
                     return new {Error = "Службу невозможно остановить через веб-интефрейс!"};
@@ -124,8 +126,8 @@ namespace CloudBackuper.Web
 
                 Task.Run(async () =>
                 {
-                    await Task.Delay(3000);
-                    Environment.Exit(0);
+                    await Task.Delay(500);
+                    shutdown.Shutdown();
                 });
                 return new {Message = "Приложение будет остановлено через несколько секунд!"};
             }
