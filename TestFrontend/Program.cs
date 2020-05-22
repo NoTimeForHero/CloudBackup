@@ -25,7 +25,7 @@ namespace TestFrontend
             LogManager.ReconfigExistingLoggers();
 
             var config = new CloudBackuper.Config();
-            var scheduler = await Initializer.GetScheduler(config);
+            var scheduler = await Initializer.GetScheduler(container, config);
             scheduler.ListenerManager.AddJobListener(new JobFailureHandler(3, 300));
 
             container.RegisterInstance(config);

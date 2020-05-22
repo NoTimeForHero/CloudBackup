@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NLog;
@@ -7,6 +8,23 @@ using Quartz;
 
 namespace CloudBackuper
 {
+
+    public class JobAfterHandler : IJobListener
+    {
+        public string Name => "JobAfterHandler";
+
+        public Task JobExecutionVetoed(IJobExecutionContext context, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task JobToBeExecuted(IJobExecutionContext context, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public async Task JobWasExecuted(IJobExecutionContext context, JobExecutionException jobException, CancellationToken cancellationToken = default)
+        {
+            var scheduler = context.Scheduler;
+            var jobController = scheduler.Context["jobController"] as JobController;
+            var jobsAfter = jobController?.getJobsAfter(context.JobDetail.Key);
+            if (jobsAfter != null) await Task.WhenAll(jobsAfter.Select(job => scheduler.TriggerJob(job, cancellationToken)));
+        }
+    }
 
     public class JobFailureHandler : IJobListener
     {
@@ -44,6 +62,10 @@ namespace CloudBackuper
             if (exception == null)
             {
                 data[retryKey] = 0;
+                var scheduler = context.Scheduler;
+                var jobController = scheduler.Context["jobController"] as JobController;
+                var jobsAfter = jobController?.getJobsAfter(context.JobDetail.Key);
+                if (jobsAfter != null) await Task.WhenAll(jobsAfter.Select(job => scheduler.TriggerJob(job, cancellationToken)));
                 return;
             }
 

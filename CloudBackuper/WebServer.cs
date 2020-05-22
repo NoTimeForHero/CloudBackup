@@ -23,7 +23,7 @@ namespace CloudBackuper.Web
         protected IScheduler scheduler;
         protected EmbedServer server;
 
-        public WebServer(IUnityContainer container, string pathStaticFiles=null, bool developmentMode=false)
+        public WebServer(IUnityContainer container, string pathStaticFiles=null, bool developmentMode=false, IEnumerable<IWebModule> modules = null)
         {
             var config = container.Resolve<Config>();
             scheduler = container.Resolve<IScheduler>();
@@ -50,13 +50,14 @@ namespace CloudBackuper.Web
 
             if (developmentMode) server.WithCors();
 
+            if (modules != null) foreach (var module in modules) server.WithModule(module);
+
             server.WithWebApi("/api", m => m.WithController(() => new JobController(shutdown, scheduler)))
                 .WithModule(new ActionModule("/settings.json", HttpVerbs.Get, ctx => ctx.SendDataAsync(frontendSettings)));
 
             if (pathStaticFiles != null) server.WithStaticFolder("/", pathStaticFiles, true);
 
             server.StateChanged += (s, e) => logger.Debug($"New State: {e.NewState}");
-
             server.RunAsync();
         }
 
@@ -93,15 +94,13 @@ namespace CloudBackuper.Web
             }
 
             [Route(HttpVerbs.Any, "/jobs")]
-            public async Task<object> Index()
+            public object Index()
             {
-                var states = (Dictionary<JobKey, UploadJobState>) scheduler.Context["states"];
-                var tasksDetail = (await scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()))
-                    .Select(key => scheduler.GetJobDetail(key));
-                var details = await Task.WhenAll(tasksDetail);
-                return details.Select(job => new {
-                    job.Key,
-                    State = states[job.Key]
+                var states = (Dictionary<JobKey, UploadJobState>)scheduler.Context["states"];
+                return states.Select(pair => new
+                {
+                    Key = pair.Key,
+                    State = pair.Value
                 });
             }
 

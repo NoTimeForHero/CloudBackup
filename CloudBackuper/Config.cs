@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
@@ -58,8 +59,18 @@ namespace CloudBackuper
         public string Name { get; set; }
         public string Description { get; set; }
         public string CronSchedule { get; set; }
+        public string RunAfter { get; set; }
         public string Path { get; set; }
         public Config_Masks Masks { get; set; }
+
+        public Exception Validate()
+        {
+            bool hasCron = !string.IsNullOrEmpty(CronSchedule);
+            bool hasAfter = !string.IsNullOrEmpty(RunAfter);
+
+            if (!hasCron && !hasAfter) return new ArgumentException("Job must have CronSchedule or RunAfter!");
+            return null;
+        }
 
         public override string ToString()
         {

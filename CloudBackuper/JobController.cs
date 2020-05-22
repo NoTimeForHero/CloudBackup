@@ -9,6 +9,7 @@ namespace CloudBackuper
 {
     class JobController
     {
+        protected static Dictionary<JobKey, IList<JobKey>> runAfter = new Dictionary<JobKey, IList<JobKey>>();
         protected static Logger logger = LogManager.GetCurrentClassLogger();
         protected IUnityContainer container;
         protected IScheduler scheduler;
@@ -16,13 +17,14 @@ namespace CloudBackuper
         public JobController(IUnityContainer container)
         {
             this.container = container;
-            var config = container.Resolve<Config>();
             scheduler = container.Resolve<IScheduler>();
             if (scheduler == null) throw new NullReferenceException("IScheduler is null!");
-            Constructor(config);
+            scheduler.Context["jobController"] = this;
         }
 
-        protected async void Constructor(Config config)
+        public IList<JobKey> getJobsAfter(JobKey current) => runAfter.ContainsKey(current) ? runAfter[current] : null;
+
+        public async Task<JobController> Constructor(Config config)
         {
             var tasks = new List<Task>();
             int index = 0;
@@ -31,6 +33,9 @@ namespace CloudBackuper
 
             foreach (var cfgJog in config.Jobs)
             {
+                var jobValidEx = cfgJog.Validate();
+                if (jobValidEx != null) throw jobValidEx;
+
                 var data = new JobDataMap
                 {
                     ["index"] = index,
@@ -40,22 +45,38 @@ namespace CloudBackuper
                 var job = JobBuilder.Create<UploadJob>()
                     .WithIdentity(cfgJog.Name)
                     .UsingJobData(data)
-                    .Build();
-
-                var trigger = TriggerBuilder.Create()
-                    .WithIdentity(cfgJog.Name)
-                    .WithCronSchedule(cfgJog.CronSchedule)
-                    .StartNow()
+                    .StoreDurably(true)
                     .Build();
 
                 jobStates.Add(job.Key, new UploadJobState());
 
-                var task = scheduler.ScheduleJob(job, trigger);
-                tasks.Add(task);
+                if (!string.IsNullOrEmpty(cfgJog.CronSchedule)) // Задача по расписанию Cron
+                {
+
+                    var trigger = TriggerBuilder.Create()
+                        .WithIdentity(cfgJog.Name)
+                        .WithCronSchedule(cfgJog.CronSchedule)
+                        .StartNow()
+                        .Build();
+
+                    var task = scheduler.ScheduleJob(job, trigger);
+                    tasks.Add(task);
+
+                } else if (!string.IsNullOrEmpty(cfgJog.RunAfter)) // Задача запускаемая после другой задачи
+                {
+                    var afterKey = JobKey.Create(cfgJog.RunAfter);
+                    if (!runAfter.ContainsKey(afterKey)) runAfter[afterKey] = new List<JobKey>();
+                    runAfter[afterKey].Add(job.Key);
+
+                    var task = scheduler.AddJob(job, true);
+                    tasks.Add(task);
+                }
+
                 index++;
             }
 
             await Task.WhenAll(tasks);
+            return this;
         }
 
     }

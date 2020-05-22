@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -30,13 +31,19 @@ namespace CloudBackuper
         /// Главная точка входа для приложения.
         /// </summary>
         [STAThread]
-        static void Main()
+        static async Task Main()
         {
             using (var program = new Program())
             {
-                program.Run(program);
+#if DEBUG
+                program.RunVoid(program, url => Process.Start(url));
+#else
+                await program.Run(program);
+#endif
             }
         }
+
+        public void RunVoid(IShutdown shutdown, Action<string> runAfter = null) => Run(shutdown, runAfter);
 
         public static string Title => Assembly.GetAssembly(typeof(Program)).GetTitle("CloudBackup");
         public static string Description => Assembly.GetAssembly(typeof(Program)).GetDescription("CloudBackup Description");
@@ -60,9 +67,9 @@ namespace CloudBackuper
             Initializer.applyLoggingSettings(config.Logging);
         }
 
-        public async void Run(IShutdown shutdown)
+        public async Task Run(IShutdown shutdown, Action<string> runAfter = null)
         {
-            var scheduler = await Initializer.GetScheduler(config);
+            var scheduler = await Initializer.GetScheduler(container, config);
             if (config.JobRetrying != null)
             {
                 var listener = new JobFailureHandler(config.JobRetrying.MaxRetries, config.JobRetrying.WaitSeconds * 1000);
@@ -73,11 +80,17 @@ namespace CloudBackuper
             container.RegisterInstance(scheduler);
             if (shutdown != null) container.RegisterInstance(shutdown);
 
-            new JobController(container);
+            var controller = await new JobController(container).Constructor(config);
+            container.RegisterInstance(controller);
+
+            var sockets = new WebSocketStatus(scheduler, "/ws-status");
+
             var staticFilesPath = Path.Combine(AppPath, "WebApp");
             logger.Debug($"Путь до папки со статикой: {staticFilesPath}");
-            webServer = new WebServer(container, staticFilesPath);
+            webServer = new WebServer(container, staticFilesPath, modules: new []{ sockets });
+            sockets.RunLoop();
 
+            runAfter?.Invoke(config.HostingURI);
             waitShutdown.WaitOne();
         }
 
@@ -107,14 +120,16 @@ namespace CloudBackuper
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        public static async Task<IScheduler> GetScheduler(Config config)
+        public static async Task<IScheduler> GetScheduler(IUnityContainer container, Config config, bool addAfterHandler = true)
         {
             NameValueCollection props = new NameValueCollection { { "quartz.serializer.type", "binary" } };
             StdSchedulerFactory factory = new StdSchedulerFactory(props);
             IScheduler scheduler = await factory.GetScheduler();
             await scheduler.Start();
             scheduler.Context["states"] = new Dictionary<JobKey, UploadJobState>();
+            scheduler.Context["container"] = container;
             scheduler.Context["config"] = config;
+            if (addAfterHandler) scheduler.ListenerManager.AddJobListener(new JobAfterHandler());
             return scheduler;
         }
 
