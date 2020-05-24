@@ -83,12 +83,9 @@ namespace CloudBackuper
             var controller = await new JobController(container).Constructor(config);
             container.RegisterInstance(controller);
 
-            var sockets = new WebSocketStatus(scheduler, "/ws-status");
-
             var staticFilesPath = Path.Combine(AppPath, "WebApp");
             logger.Debug($"Путь до папки со статикой: {staticFilesPath}");
-            webServer = new WebServer(container, staticFilesPath, modules: new []{ sockets });
-            sockets.RunLoop();
+            webServer = new WebServer(container, staticFilesPath);
 
             runAfter?.Invoke(config.HostingURI);
             waitShutdown.WaitOne();

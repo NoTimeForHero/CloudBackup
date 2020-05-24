@@ -31,7 +31,7 @@ namespace CloudBackuper
             scheduler.ListenerManager.AddJobListener(this);
         }
 
-        public void RunLoop()
+        protected override void OnStart(CancellationToken cancellationToken)
         {
             jobStates = scheduler.Context["states"] as Dictionary<JobKey, UploadJobState>;
             Task.Factory.StartNew(async () =>

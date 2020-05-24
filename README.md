@@ -13,3 +13,6 @@
 ## Лицензия
 
 Данный проект распостраняется согласно лицензии [Apache 2.0](LICENSE.txt).
+Разработчик программы [NoTimeForHero](https://github.com/notimeforhero)
+Иконка приложения [Carlo Rodríguez](https://www.iconfinder.com/CarloRodriguez)
+Иконки [закрытия](https://icons8.ru/icons/set/close-window)/[сворачивания](https://icons8.ru/icons/set/minimize-window--v2) окна от [Icons8](https://icons8.ru)
