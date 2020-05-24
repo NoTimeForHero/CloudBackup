@@ -18,8 +18,9 @@ namespace CloudBackuper
         protected readonly Logger logger = LogManager.GetCurrentClassLogger();
         protected readonly CancellationTokenSource tokenSource;
         protected readonly int updateInterval;
-        protected volatile bool allJobsCompleted;
         protected Dictionary<JobKey, UploadJobState> jobStates;
+
+        protected CancellationTokenSource checkRunningJobsTokenSource;
 
         public WebSocketStatus(IScheduler scheduler, string urlPath, CancellationTokenSource tokenSource = null, int updateIntervalMs = 300) : base(urlPath, true)
         {
@@ -46,25 +47,33 @@ namespace CloudBackuper
 
         protected async Task EventLoop()
         {
-            if (allJobsCompleted)
-            {
-                allJobsCompleted = false;
-                await BroadcastAsync(JsonConvert.SerializeObject(new { Type = "Completed" }));
-                return;
-            }
-
             await BroadcastProgress(Caller.EventLoop);
+        }
+
+        protected void BroadcastIfAllJobsCompleted()
+        {
+            checkRunningJobsTokenSource?.Cancel();
+            checkRunningJobsTokenSource = new CancellationTokenSource();
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var delay = Math.Min(2000, updateInterval * 3);
+                    await Task.Delay(delay, checkRunningJobsTokenSource.Token);
+                    var jobs = await scheduler.GetCurrentlyExecutingJobs(tokenSource.Token);
+                    if (jobs.Count > 0) return;
+                    await BroadcastAsync(JsonConvert.SerializeObject(new {Type = "Completed"}));
+                }
+                catch (TaskCanceledException)
+                {
+                    logger.Debug("Задача проверки завершенности была отменена новой задачей!");
+                }
+            }, checkRunningJobsTokenSource.Token);
         }
 
         protected async Task BroadcastProgress(Caller caller)
         {
             var jobs = await scheduler.GetCurrentlyExecutingJobs(tokenSource.Token);
-            if (jobs.Count == 1 && caller == Caller.Completed)
-            {
-                await Task.Delay(updateInterval, tokenSource.Token);
-                allJobsCompleted = true; // Выполнить задачу обновления в следующем тике
-                return;
-            }
             if (jobs.Count == 0) return;
             var states = new Dictionary<string, UploadJobState>();
             foreach (var job in jobs)
@@ -98,7 +107,10 @@ namespace CloudBackuper
             => BroadcastProgress(Caller.Vetoed);
 
         public async Task JobWasExecuted(IJobExecutionContext context, JobExecutionException jobException, CancellationToken cancellationToken = new CancellationToken())
-            => await BroadcastProgress(Caller.Completed);
+        {
+            await BroadcastProgress(Caller.Completed);
+            BroadcastIfAllJobsCompleted();
+        }
 
         protected override void Dispose(bool disposing)
         {
