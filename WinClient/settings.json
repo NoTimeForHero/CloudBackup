@@ -1,0 +1,4 @@
+﻿{
+  "topmost": true,
+  "watch": "ws://localhost:3000/ws-status" 
+}

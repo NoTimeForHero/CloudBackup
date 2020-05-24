@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Утилита резервного копирования файлов по расписанию в S3 облако")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NoTimeForHero")]
-[assembly: AssemblyProduct("CloudBackup")]
+[assembly: AssemblyProduct("CloudBackup: WinClient")]
 [assembly: AssemblyCopyright("Copyright NoTimeForHero©  2019")]
 [assembly: AssemblyTrademark("NoTimeForHero")]
 [assembly: AssemblyCulture("")]

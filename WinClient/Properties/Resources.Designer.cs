@@ -79,5 +79,15 @@ namespace WinClient.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Byte[].
+        /// </summary>
+        internal static byte[] README {
+            get {
+                object obj = ResourceManager.GetObject("README", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

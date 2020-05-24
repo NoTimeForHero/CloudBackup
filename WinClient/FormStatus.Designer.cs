@@ -112,7 +112,7 @@
             this.lblFormTitle.Name = "lblFormTitle";
             this.lblFormTitle.Size = new System.Drawing.Size(594, 50);
             this.lblFormTitle.TabIndex = 0;
-            this.lblFormTitle.Text = "Загрузка резервных копий в облако";
+            this.lblFormTitle.Text = "lblFormTitle";
             this.lblFormTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // panelBody

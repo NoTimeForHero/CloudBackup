@@ -15,9 +15,10 @@ namespace WinClient
         public FormStatus()
         {
             InitializeComponent();
-            Text = "Загрузка резервных копий в облако";
+            Text = Program.Title;
             btnMinimize.Click += (o, ev) => WindowState = FormWindowState.Minimized;
             btnClose.Click += (o, ev) => Close();
+            lblFormTitle.Text = Text;
             lblFormTitle.MouseDown += (o, ev) => Win32.DragWindow(Handle);
             createRoundedBorder(20, 3);
 
