@@ -10,7 +10,10 @@ namespace WinClient
     {
         protected T value;
 
-        public ObserverVariable() {}
+        public ObserverVariable(T value = default)
+        {
+            this.value = value;
+        }
 
         public event Action<T> Changed;
 
@@ -19,7 +22,7 @@ namespace WinClient
             get => value;
             set {
                 this.value = value;
-                Changed(value);
+                Changed?.Invoke(value);
             }
         }
 

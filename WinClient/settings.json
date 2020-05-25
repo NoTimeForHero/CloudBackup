@@ -1,4 +1,5 @@
 ﻿{
   "topmost": true,
-  "watch": "ws://localhost:3000/ws-status" 
+  "watch": "ws://localhost:3000/ws-status",
+  "shutdown_computer": null
 }
