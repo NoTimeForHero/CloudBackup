@@ -14,6 +14,8 @@ namespace WinClient
         public PanelProgress()
         {
             InitializeComponent();
+            lblProgress.Text = "";
+            lblStatus.Text = "";
         }
     }
 }

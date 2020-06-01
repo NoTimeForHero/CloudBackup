@@ -15,12 +15,12 @@ namespace WinClient
 {
     class GuiController
     {
-        private Form form;
+        private FormStatus form;
 
         public GuiController(bool debugMode)
         {
             createForm();
-            if (debugMode) createDebugForm(form);
+            if (debugMode) runDebug();
         }
 
         private void createForm()
@@ -28,6 +28,14 @@ namespace WinClient
             var waiter = new AutoResetEvent(false);
             new Thread(() =>
             {
+                form = new FormStatus();
+                form.FormClosing += (o, ev) =>
+                {
+                    if (ev.CloseReason != CloseReason.UserClosing) return;
+                    ev.Cancel = true;
+                    form.Hide();
+                };
+                /*
                 Console.WriteLine("Created GuiController thread #" + Thread.CurrentThread.ManagedThreadId);
                 form = new HiddenTimersForm();
                 var label = new Label
@@ -36,21 +44,20 @@ namespace WinClient
                     TextAlign = ContentAlignment.MiddleCenter,
                     Font = new Font(form.Font.FontFamily, 18f, FontStyle.Bold)
                 };
-                form.FormClosing += (o, ev) =>
-                {
-                    if (ev.CloseReason != CloseReason.UserClosing) return;
-                    ev.Cancel = true;
-                    form.Hide();
-                    //if (!Program.exitConfirm()) ev.Cancel = true;
-                };
                 form.Controls.Add(label);
+                */
                 waiter.Set();
                 Application.Run(form);
             }).Start();
             waiter.WaitOne();
         }
 
-        public void createDebugForm(Form targetForm)
+        public void runDebug()
+        {
+            createDebugForm(form);
+        }
+
+        private void createDebugForm(Form targetForm)
         {
             new Thread(() =>
             {
@@ -132,40 +139,9 @@ namespace WinClient
         public void OnMessage(string text)
         {
             var message = JsonConvert.DeserializeObject<Api.Message>(text);
-            try
-            {
-                form.Invoke((Action) (() =>
-                {
-                    if (message.Type == MessageType.Started) form.Show();
-                        var label = form.Controls.OfType<Label>().First();
-                    label.Text = message.Type.ToString();
-                    if (message.Type == MessageType.ProgressUpdated)
-                    {
-                        label.Text += "\n" + message.States.FirstOrDefault().Value.status;
-                    }
-                }));
-            }
+            try  {  form.Invoke((Action) (() => form.Update(message) )); }
             catch (InvalidOperationException) {}
             catch (NullReferenceException)  {}
-        }
-    }
-
-    class HiddenTimersForm : Form
-    {
-        protected List<Timer> timers = new List<Timer>();
-
-        protected override void SetVisibleCore(bool value)
-        {
-            if (!IsHandleCreated)
-            {
-                CreateHandle();
-                value = false;
-            }
-
-            if (value) timers.ForEach(timer => timer.Start());
-            else timers.ForEach(timer => timer.Stop());
-
-            base.SetVisibleCore(value);
         }
     }
 }

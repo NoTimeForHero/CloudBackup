@@ -34,16 +34,24 @@ namespace WinClient
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            MakeTrayIcon(out var menuItem);
-
             var status = new ObserverVariable<string>("Ожидание");
-            status.Changed += value => menuItem.Text = value;
 
             GuiController controller = new GuiController(config.debug_mode);
             var watcher = new SocketClient(config, status);
 
             watcher.OnMessage += controller.OnMessage;
             watcher.StartAsync();
+
+            MakeTrayIcon(out var menuItem, out var menuDebug);
+            status.Changed += value => menuItem.Text = value;
+
+            if (config.debug_mode)
+            {
+                menuDebug.Visible = true;
+                menuDebug.Click += (o, ev) => controller.runDebug();
+            }
+
+            //Test(controller);
 
             Application.Run();
         }
@@ -52,6 +60,7 @@ namespace WinClient
         {
             new Thread(() =>
             {
+                Thread.Sleep(2000);
                 controller.OnMessage(new Api.Message(MessageType.Started).Json);
                 Thread.Sleep(2000);
                 for (int i = 0; i < 10; i++)
@@ -59,7 +68,7 @@ namespace WinClient
                     if (i == 4) controller.OnMessage(new Api.Message(MessageType.Started).Json);
                     var fakeApi = new Api.Message(MessageType.ProgressUpdated)
                     {
-                        States = new Dictionary<string, UploadJobState> { { "Job", new UploadJobState { status = $"{i}" } } }
+                        States = new Dictionary<string, UploadJobState> { { "Job", new UploadJobState { status = $"{i}", total = 10, current = i } } }
                     };
                     controller.OnMessage(fakeApi.Json);
                     Thread.Sleep(800);
@@ -76,7 +85,7 @@ namespace WinClient
             return result == DialogResult.Yes;
         }
 
-        void MakeTrayIcon(out MenuItem itemStatus)
+        void MakeTrayIcon(out MenuItem itemStatus, out MenuItem itemDebug)
         {
             NotifyIcon trayIcon = new NotifyIcon();
             trayIcon.Icon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
@@ -86,11 +95,13 @@ namespace WinClient
             itemStatus = new MenuItem("Неизвестно") {Enabled = false};
             var itemAbout = new MenuItem("Авторы", (o,ev) => new FormAbout().Show());
             var itemExit = new MenuItem("Выйти", (o,ev) => exitConfirm());
+            itemDebug = new MenuItem("Отладка") { Visible = false };
 
             ContextMenu menu = new ContextMenu();
             menu.MenuItems.Add(new MenuItem("Состояние:") { Enabled = false });
             menu.MenuItems.Add(itemStatus);
             menu.MenuItems.Add("-");
+            menu.MenuItems.Add(itemDebug);
             menu.MenuItems.Add(itemAbout);
             menu.MenuItems.Add(itemExit);
 

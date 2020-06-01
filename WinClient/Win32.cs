@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Forms;
 
 namespace WinClient
 {
+    [SuppressMessage("ReSharper", "IdentifierTypo")]
     public static class Win32
     {
         private const int WM_NCLBUTTONDOWN = 0xA1;
@@ -35,5 +39,18 @@ namespace WinClient
             int nHeightEllipse // height of ellipse
         );
 
+        // https://stackoverflow.com/a/4975942
+        public static string BytesToString(long byteCount)
+        {
+            string[] suf = { "Б", "Кб", "Мб", "Гб"}; //Longs run out around EB
+            if (byteCount == 0)
+                return "0" + suf[0];
+            long bytes = Math.Abs(byteCount);
+            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
+            return (Math.Sign(byteCount) * num) + " " + suf[place];
+        }
+
     }
+
 }

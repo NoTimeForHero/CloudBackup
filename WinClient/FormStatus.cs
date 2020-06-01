@@ -7,11 +7,29 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
+using WinClient.Api;
 
 namespace WinClient
 {
-    public partial class FormStatus : Form
+    partial class FormStatus : Form
     {
+        protected List<Timer> timers = new List<Timer>();
+        protected UserControl currentPanel;
+
+        protected override void SetVisibleCore(bool value)
+        {
+            if (!IsHandleCreated)
+            {
+                CreateHandle();
+                value = false;
+            }
+
+            if (value) timers.ForEach(timer => timer.Start());
+            else timers.ForEach(timer => timer.Stop());
+
+            base.SetVisibleCore(value);
+        }
+
         public FormStatus()
         {
             InitializeComponent();
@@ -21,9 +39,6 @@ namespace WinClient
             lblFormTitle.Text = Text;
             lblFormTitle.MouseDown += (o, ev) => Win32.DragWindow(Handle);
             createRoundedBorder(20, 3);
-
-            PanelProgress panel = new PanelProgress();
-            panelBody.Controls.Add(panel);
         }
 
         private void createRoundedBorder(int roundSize, int innerPadding)
@@ -33,9 +48,47 @@ namespace WinClient
             layerMain.Region = Region.FromHrgn(Win32.CreateRoundRectRgn(innerPadding, innerPadding, layerMain.Width - innerPadding, layerMain.Height - innerPadding, roundSize, roundSize));
         }
 
-        private void btnClose_Click(object sender, EventArgs e)
+        public void TogglePanel(UserControl newPanel)
         {
-            Close();
+            if (currentPanel != null)
+            {
+                panelBody.Controls.Remove(currentPanel);
+                currentPanel.Dispose();
+            }
+            currentPanel = newPanel;
+            panelBody.Controls.Add(newPanel);
+        }
+
+        public void Update(Api.Message message)
+        {
+            switch (message.Type)
+            {
+                case MessageType.Started:
+                    TogglePanel(new PanelProgress());
+                    Show();
+                    return;
+                case MessageType.Completed:
+                    TogglePanel(new PanelProgress());
+                    return;
+            }
+
+            if (message.Type == MessageType.ProgressUpdated && currentPanel is PanelProgress pnlProg)
+            {
+                var state = message.States.Values.FirstOrDefault();
+                if (state == null) return;
+                if (!state.isBytes)
+                {
+                    pnlProg.lblProgress.Text = $"{state.current} / {state.total}";
+                }
+                else
+                {
+                    pnlProg.lblProgress.Text = Win32.BytesToString(state.current) + " / " + Win32.BytesToString(state.total);
+                }
+                pnlProg.lblStatus.Text = state.status;
+                if (state.current > state.total) state.total = state.current;
+                pnlProg.progressBar1.Maximum = (int) state.total;
+                pnlProg.progressBar1.Value = (int) state.current;
+            }
         }
     }
 }
