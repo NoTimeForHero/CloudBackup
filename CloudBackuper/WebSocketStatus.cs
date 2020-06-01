@@ -62,7 +62,7 @@ namespace CloudBackuper
                     await Task.Delay(delay, checkRunningJobsTokenSource.Token);
                     var jobs = await scheduler.GetCurrentlyExecutingJobs(tokenSource.Token);
                     if (jobs.Count > 0) return;
-                    await BroadcastAsync(JsonConvert.SerializeObject(new {Type = "Completed"}));
+                    await BroadcastAsync(new Message(MessageType.Completed).Json);
                 }
                 catch (TaskCanceledException)
                 {
@@ -82,8 +82,7 @@ namespace CloudBackuper
                 if (!jobStates.ContainsKey(key)) continue;
                 states[key.Name] = jobStates[key];
             }
-            var result = new { Type = "ProgressUpdated", States = states };
-            await BroadcastAsync(JsonConvert.SerializeObject(result));
+            await BroadcastAsync(new Message(MessageType.ProgressUpdated){States=states}.Json);
         }
 
         protected override Task OnClientConnectedAsync(IWebSocketContext context)
@@ -100,8 +99,11 @@ namespace CloudBackuper
 
         protected override Task OnMessageReceivedAsync(IWebSocketContext context, byte[] buffer, IWebSocketReceiveResult result) => Task.CompletedTask;
 
-        public Task JobToBeExecuted(IJobExecutionContext context, CancellationToken cancellationToken = new CancellationToken())
-            => BroadcastProgress(Caller.Started);
+        public async Task JobToBeExecuted(IJobExecutionContext context, CancellationToken cancellationToken = new CancellationToken())
+        {
+            await BroadcastAsync(new Message(MessageType.Started){Name=context.JobDetail.Key.Name}.Json);
+            await BroadcastProgress(Caller.Started);
+        }
 
         public Task JobExecutionVetoed(IJobExecutionContext context, CancellationToken cancellationToken = new CancellationToken())
             => BroadcastProgress(Caller.Vetoed);
@@ -126,6 +128,25 @@ namespace CloudBackuper
             Started,
             Vetoed,
             Completed
+        }
+
+        protected enum MessageType
+        {
+            Started,
+            Completed,
+            ProgressUpdated
+        }
+
+        protected class Message
+        {
+            public MessageType Type { get; set; }
+            public string Name { get; set; }
+            public IDictionary<string,UploadJobState> States { get; set; }
+
+            public Message(MessageType Type) => this.Type = Type;
+
+            [JsonIgnore]
+            public string Json => JsonConvert.SerializeObject(this);
         }
     }
 }

@@ -47,6 +47,7 @@ namespace WinClient
                 await socket.ConnectAsync(uri, CancellationToken.None);
                 if (socket.State != WebSocketState.Open) throw new WebException($"Invalid WebSocketState: {socket.State}");
                 status.Value = "Подключено";
+                Program.Logger.Append("Установлено подключение по протоколу WebSocket к адресу: " + uri);
                 while (!token.IsCancellationRequested)
                 {
                     var buffer = new ArraySegment<byte>(new byte[8192]);
@@ -61,9 +62,10 @@ namespace WinClient
                     OnMessage?.Invoke(message);
                 }
             }
-            catch (WebSocketException)
+            catch (WebSocketException ex)
             {
                 status.Value = "Ошибка";
+                Program.Logger.Append($"Ошибка: {ex}" + Environment.NewLine + Environment.NewLine);
                 await Task.Delay(1500, token);
                 goto Reconnect;
             }

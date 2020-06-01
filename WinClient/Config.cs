@@ -9,6 +9,7 @@ namespace WinClient
     class Config
     {
         public bool topmost { get; set; }
+        public bool debug_mode { get; set; }
         public string watch { get; set; }
         public int? shutdown_computer { get; set; }
 
