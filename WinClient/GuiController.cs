@@ -15,12 +15,14 @@ namespace WinClient
 {
     class GuiController
     {
+        private readonly Config config;
         private FormStatus form;
 
-        public GuiController(bool debugMode)
+        public GuiController(Config config)
         {
+            this.config = config;
             createForm();
-            if (debugMode) runDebug();
+            if (config.debug_mode) runDebug();
         }
 
         private void createForm()
@@ -28,24 +30,13 @@ namespace WinClient
             var waiter = new AutoResetEvent(false);
             new Thread(() =>
             {
-                form = new FormStatus();
+                form = new FormStatus(config);
                 form.FormClosing += (o, ev) =>
                 {
                     if (ev.CloseReason != CloseReason.UserClosing) return;
                     ev.Cancel = true;
                     form.Hide();
                 };
-                /*
-                Console.WriteLine("Created GuiController thread #" + Thread.CurrentThread.ManagedThreadId);
-                form = new HiddenTimersForm();
-                var label = new Label
-                {
-                    Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    Font = new Font(form.Font.FontFamily, 18f, FontStyle.Bold)
-                };
-                form.Controls.Add(label);
-                */
                 waiter.Set();
                 Application.Run(form);
             }).Start();

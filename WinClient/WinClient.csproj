@@ -70,6 +70,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GuiController.cs" />
+    <Compile Include="PanelCompleted.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PanelCompleted.Designer.cs">
+      <DependentUpon>PanelCompleted.cs</DependentUpon>
+    </Compile>
     <Compile Include="SocketClient.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="FormAbout.cs">
@@ -106,6 +112,9 @@
     <EmbeddedResource Include="FormStatus.resx">
       <DependentUpon>FormStatus.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="PanelCompleted.resx">
+      <DependentUpon>PanelCompleted.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="PanelProgress.resx">
       <DependentUpon>PanelProgress.cs</DependentUpon>
     </EmbeddedResource>
@@ -135,4 +144,5 @@
     <None Include="Resources\icons8_close_window_48.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ProjectExtensions />
 </Project>

@@ -1,6 +1,6 @@
 ﻿{
   "topmost": true,
   "watch": "ws://localhost:3000/ws-status",
-  "shutdown_computer": null,
+  "shutdown_computer": "00:01:00",
   "debug_mode": true 
 }

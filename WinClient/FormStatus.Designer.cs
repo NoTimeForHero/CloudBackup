@@ -106,6 +106,7 @@
             // 
             // lblFormTitle
             // 
+            this.lblFormTitle.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(133)))), ((int)(((byte)(193)))), ((int)(((byte)(233)))));
             this.lblFormTitle.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lblFormTitle.Font = new System.Drawing.Font("Trebuchet MS", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.lblFormTitle.Location = new System.Drawing.Point(3, 0);
@@ -117,7 +118,7 @@
             // 
             // panelBody
             // 
-            this.panelBody.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(133)))), ((int)(((byte)(193)))), ((int)(((byte)(233)))));
+            this.panelBody.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(214)))), ((int)(((byte)(234)))), ((int)(((byte)(248)))));
             this.panelBody.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelBody.Location = new System.Drawing.Point(2, 52);
             this.panelBody.Margin = new System.Windows.Forms.Padding(0);

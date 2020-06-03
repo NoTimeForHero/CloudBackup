@@ -11,7 +11,7 @@ namespace WinClient
         public bool topmost { get; set; }
         public bool debug_mode { get; set; }
         public string watch { get; set; }
-        public int? shutdown_computer { get; set; }
+        public TimeSpan? shutdown_computer { get; set; }
 
         public static Config Default => new Config
         {

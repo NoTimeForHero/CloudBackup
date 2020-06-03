@@ -4,18 +4,21 @@ using System.Threading.Tasks;
 using CloudBackuper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quartz;
+using Unity;
 
 namespace Tests
 {
     [TestClass]
     public class TestRetryingJobListener
     {
+        protected IUnityContainer container;
         protected IScheduler scheduler;
 
         [TestInitialize]
         public async Task Startup()
         {
-            scheduler = await Initializer.GetScheduler(new Config());
+            container = new UnityContainer();
+            scheduler = await Initializer.GetScheduler(container, new Config(), false);
         }
 
         [TestMethod]

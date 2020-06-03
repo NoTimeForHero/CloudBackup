@@ -36,7 +36,7 @@ namespace WinClient
 
             var status = new ObserverVariable<string>("Ожидание");
 
-            GuiController controller = new GuiController(config.debug_mode);
+            GuiController controller = new GuiController(config);
             var watcher = new SocketClient(config, status);
 
             watcher.OnMessage += controller.OnMessage;
@@ -60,19 +60,22 @@ namespace WinClient
         {
             new Thread(() =>
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(500);
                 controller.OnMessage(new Api.Message(MessageType.Started).Json);
-                Thread.Sleep(2000);
-                for (int i = 0; i < 10; i++)
+                Thread.Sleep(1000);
+                for (int i = 0; i < 5; i++)
                 {
-                    if (i == 4) controller.OnMessage(new Api.Message(MessageType.Started).Json);
                     var fakeApi = new Api.Message(MessageType.ProgressUpdated)
                     {
-                        States = new Dictionary<string, UploadJobState> { { "Job", new UploadJobState { status = $"{i}", total = 10, current = i } } }
+                        States = new Dictionary<string, UploadJobState> { { "Job", new UploadJobState { status = $"{i}", total = 5, current = i } } }
                     };
                     controller.OnMessage(fakeApi.Json);
-                    Thread.Sleep(800);
+                    Thread.Sleep(100);
                 }
+                controller.OnMessage(new Api.Message(MessageType.Completed).Json);
+                Thread.Sleep(5000);
+                controller.OnMessage(new Api.Message(MessageType.Started).Json);
+                Thread.Sleep(2000);
                 controller.OnMessage(new Api.Message(MessageType.Completed).Json);
             }).Start();
         }
