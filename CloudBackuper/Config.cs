@@ -61,6 +61,7 @@ namespace CloudBackuper
         public string CronSchedule { get; set; }
         public string RunAfter { get; set; }
         public string Path { get; set; }
+        public string Password { get; set; }
         public Config_Masks Masks { get; set; }
 
         public Exception Validate()

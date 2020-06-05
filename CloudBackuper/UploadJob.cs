@@ -126,9 +126,9 @@ namespace CloudBackuper
 
             var s3 = Uploader_S3.GetInstance(cfgCloud);
 
-            using (var zip = new ZipTools(cfgJob.Path, files))
+            using (var zip = new ZipTools(cfgJob.Path, files, cfgJob.Password))
             {
-                zip.CreateZip((total, index, name) =>
+                var zipFilename = zip.CreateZip((total, index, name) =>
                 {
                     jobState.status = $"Архивация файла: {name}";
                     jobState.current = index;
@@ -136,7 +136,7 @@ namespace CloudBackuper
                 });
 
                 jobState.isBytes = true;
-                s3.UploadFile(zip.Filename, filename, (sender, args) =>
+                s3.UploadFile(zipFilename, filename, (sender, args) =>
                 {
                     jobState.status = $"Отправка архива {filename}";
                     jobState.current = args.TransferredBytes;

@@ -48,6 +48,7 @@
       "Description": null,
       "CronSchedule": "0 0 18 * * ?",
       "Path": "C:\\Users\\user\\Desktop",
+      "Password": "symjPph60X7wMpmPyHfRzbyp0asdke6q",
       "Masks": {
         "Masks": [
           ".txt",
