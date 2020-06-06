@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NLog;
 using Quartz;
+using Unity;
 
 namespace CloudBackuper
 {
@@ -105,14 +106,18 @@ namespace CloudBackuper
         public async Task Execute(IJobExecutionContext context)
         {
             var dataMap = context.JobDetail.JobDataMap;
+            var container = context.Scheduler.Context["container"] as IUnityContainer;
             var cfgCloud = (context.Scheduler.Context["config"] as Config)?.Cloud;
             var jobIndex = (int) dataMap["index"];
             var cfgJob = dataMap["data"] as Config_Job;
 
             logger.Info($"Задача №{jobIndex} запущена: {cfgJob.Name}");
 
-            var filename = cfgJob.Name.ConvertToValidFilename();
-            filename = DateTime.Now.ToString("yyyy.MM.dd/HH.mm.ss") + $"_{filename}.zip";
+            var jsEngine = container.Resolve<JSEngine>();
+
+            var validFilename = cfgJob.Name.ConvertToValidFilename();
+            var filename = jsEngine.getCloudFilename(validFilename) + ".zip";
+            //filename = DateTime.Now.ToString("yyyy.MM.dd/HH.mm.ss") + $"_{filename}.zip";
 
             logger.Debug("Архивация директории: " + cfgJob.Path);
             logger.Debug("Маски файлов: " + string.Join(", ", cfgJob.Masks.Masks));

@@ -27,6 +27,9 @@ namespace CloudBackuper
 
         private WebServer webServer;
 
+        public const string Filename_Config = "config.json";
+        public const string Filename_Script = "scripts.js";
+
         /// <summary>
         /// Главная точка входа для приложения.
         /// </summary>
@@ -62,7 +65,7 @@ namespace CloudBackuper
             if (appDir == null) throw new ArgumentException("Invalid path to assembly!");
             logger.Info($"Каталог откуда запущено приложение: {appDir}");
 
-            string json = File.ReadAllText(Path.Combine(appDir, "config.json"));
+            string json = File.ReadAllText(Path.Combine(appDir, Filename_Config));
             config = JsonConvert.DeserializeObject<Config>(json);
             Initializer.applyLoggingSettings(config.Logging);
         }
@@ -80,6 +83,9 @@ namespace CloudBackuper
             container.RegisterInstance(scheduler);
             if (shutdown != null) container.RegisterInstance(shutdown);
 
+            var jsEngine = new JSEngine(Filename_Script);
+            container.RegisterInstance(jsEngine);
+
             var controller = await new JobController(container).Constructor(config);
             container.RegisterInstance(controller);
 
@@ -88,6 +94,7 @@ namespace CloudBackuper
             webServer = new WebServer(container, staticFilesPath);
 
             runAfter?.Invoke(config.HostingURI);
+
             waitShutdown.WaitOne();
         }
 
