@@ -32,7 +32,7 @@
   },
   "Jobs": [
     {
-      "Name": "Backup system files",
+      "Name": "System files",
       "Description": null,
       "CronSchedule": "0 0 18 * * ?",
       "Path": "C:\\Windows\\System32",
@@ -46,7 +46,7 @@
     {
       "Name": "User files",
       "Description": null,
-      "CronSchedule": "0 0 18 * * ?",
+      "RunAfter": "System files",
       "Path": "C:\\Users\\user\\Desktop",
       "Password": "symjPph60X7wMpmPyHfRzbyp0asdke6q",
       "Masks": {

@@ -65,7 +65,7 @@ namespace CloudBackuper
             if (appDir == null) throw new ArgumentException("Invalid path to assembly!");
             logger.Info($"Каталог откуда запущено приложение: {appDir}");
 
-            string json = File.ReadAllText(Path.Combine(appDir, Filename_Config));
+            string json = File.ReadAllText(Path.Combine(AppPath, Filename_Config));
             config = JsonConvert.DeserializeObject<Config>(json);
             Initializer.applyLoggingSettings(config.Logging);
         }
@@ -83,7 +83,7 @@ namespace CloudBackuper
             container.RegisterInstance(scheduler);
             if (shutdown != null) container.RegisterInstance(shutdown);
 
-            var jsEngine = new JSEngine(Filename_Script);
+            var jsEngine = new JSEngine(Path.Combine(AppPath, Filename_Script));
             container.RegisterInstance(jsEngine);
 
             var controller = await new JobController(container).Constructor(config);
