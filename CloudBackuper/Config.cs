@@ -44,7 +44,16 @@ namespace CloudBackuper
         public string Login { get; set; }
         public string Password { get; set; }
         public string Container { get; set; }
+        public Config_Proxy Proxy { get; set; }
         public bool ForcePathStyle { get; set; }
+
+        public class Config_Proxy
+        {
+            public string Host { get; set; }
+            public int Port { get; set; }
+            public string Login { get; set; }
+            public string Password { get; set; }
+        }
     }
 
     public class Config_Masks

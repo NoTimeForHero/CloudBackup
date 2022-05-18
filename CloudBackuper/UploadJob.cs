@@ -140,10 +140,11 @@ namespace CloudBackuper
 
             var jobState = getState(context);
             jobState.inProgress = true;
-            jobState.status = "Построение списка файлов";
 
+            jobState.status = "Построение списка файлов";
             var files = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks);
 
+            jobState.status = "Подключение к S3 хранилищу";
             var s3 = Uploader_S3.GetInstance(cfgCloud);
 
             using (var zip = new ZipTools(cfgJob.Path, files, cfgJob.Password))

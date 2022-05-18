@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -30,6 +31,18 @@ namespace CloudBackuper
             AmazonS3Config config = new AmazonS3Config();
             config.ServiceURL = settings.Provider;
             config.ForcePathStyle = settings.ForcePathStyle;
+            if (settings.Proxy != null)
+            {
+                logger.Info($"Используем прокси: {settings.Proxy.Host}:{settings.Proxy.Port}");
+                config.ProxyHost = settings.Proxy.Host;
+                config.ProxyPort = settings.Proxy.Port;
+                if (settings.Proxy.Login != null && settings.Proxy.Password != null)
+                {
+                    config.ProxyCredentials = new NetworkCredential(settings.Proxy.Login, settings.Proxy.Password);
+                    var maskedPass = new string('#', settings.Proxy.Password.Length);
+                    logger.Info($"С логином {settings.Proxy.Login} и паролем {maskedPass}");
+                }
+            }
 
             client = new AmazonS3Client(settings.Login, settings.Password, config);
             transferUtility = new TransferUtility(client);
