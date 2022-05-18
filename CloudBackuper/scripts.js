@@ -19,7 +19,7 @@ function getCloudFilename(taskName) {
     // Пример для возврата "День недели/Имя_задачи"
     /*
     var path = "";
-    path += format_datetime("dddd", "ru_RU").toLowerCase();
+    path += format_datetime("dddd", "ru-RU").toLowerCase();
     path += "/";
     path += no_space(taskName);
     return path;

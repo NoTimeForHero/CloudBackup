@@ -101,9 +101,24 @@ namespace CloudBackuper
         {
             var states = (Dictionary<JobKey, UploadJobState>) context.Scheduler.Context["states"];
             return states[context.JobDetail.Key];
-        } 
+        }
 
         public async Task Execute(IJobExecutionContext context)
+        {
+            try
+            {
+                await RawExecute(context);
+            }
+            catch (Exception exception)
+            {
+                logger.Error($"Задача '{context.JobDetail.Key.Name}' кинула ошибку {exception.GetType().FullName}!");
+                logger.Error("Сообщение: " + exception.Message);
+                logger.Error(exception.StackTrace);
+                throw;
+            }
+        }
+
+        protected async Task RawExecute(IJobExecutionContext context)
         {
             var dataMap = context.JobDetail.JobDataMap;
             var container = context.Scheduler.Context["container"] as IUnityContainer;
