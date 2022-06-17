@@ -14,13 +14,18 @@ namespace CloudBackuper
         public delegate string[] GetFiles(string path);
         public delegate string[] GetDirectories(string path);
 
-        public static List<string> GetFilesInDirectory(string path, Config_Masks masks,
-            GetFiles getFiles = null, GetDirectories getDirectories = null)
+        public static Node GetFilesInDirectory(
+            string path,
+            Config_Masks masks,
+            GetFiles getFiles = null,
+            GetDirectories getDirectories = null,
+            Node node = null,
+            List<string> flattenFiles = null)
         {
             if (getFiles == null) getFiles = xPath => Directory.GetFiles(xPath, "*");
             if (getDirectories == null) getDirectories = xPath => Directory.GetDirectories(xPath, "*");
+            if (node == null) node = new Node { Name = Path.GetFileName(path), FullPath = path };
 
-            var output = new List<string>();
             var directories = getDirectories(path);
             foreach (var dir in directories)
             {
@@ -28,22 +33,37 @@ namespace CloudBackuper
                 if (masks.DirectoriesExcluded != null && masks.DirectoriesExcluded.Contains(dirName)) continue;
 
                 var dirPath = Path.Combine(path, dir);
-                var dirFiles = GetFilesInDirectory(dirPath, masks, getFiles, getDirectories);
-                output.AddRange(dirFiles);
+                var dirNode = new Node { Name = dirName, FullPath = dirPath };
+                dirNode = GetFilesInDirectory(dirPath, masks, getFiles, getDirectories, dirNode, flattenFiles);
+                flattenFiles?.AddRange(dirNode.Files);
+                node.Nodes.Add(dirNode);
             }
 
             var files = getFiles(path);
+            var rawFiles = new List<string>();
             foreach (var file in files)
             {
                 var ext = Path.GetExtension(file);
                 var contains = masks.Masks.Contains(ext, StringComparer.InvariantCultureIgnoreCase);
                 if (masks.MasksExclude && contains) continue;
                 if (!masks.MasksExclude && !contains) continue;
-                output.Add(file);
-
+                flattenFiles?.Add(file);
+                rawFiles.Add(file);
             }
-            logger.Debug($"Файлов подходящих условиям в '{path}' найдено: {output.Count}");
-            return output;
+            logger.Debug($"Файлов подходящих условиям в '{path}' найдено: {rawFiles.Count}");
+            node.Files = rawFiles;
+            return node;
+        }
+
+        public class Node
+        {
+            public string Name;
+            public string FullPath;
+            public List<string> Files = new List<string>();
+            public List<Node> Nodes = new List<Node>();
+
+            public override string ToString()
+                => $"[Node Name={Name}, FullPath={FullPath}, Files={Files.Count}, Children={Nodes.Count}]";
         }
 
         // Best way to convert absolute path to relative

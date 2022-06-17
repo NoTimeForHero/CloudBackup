@@ -63,7 +63,8 @@ namespace CloudBackuper
             jobState.inProgress = true;
 
             jobState.status = "Построение списка файлов";
-            var files = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks);
+            var files = new List<string>();
+            var nodes = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks, flattenFiles: files);
 
             jobState.status = "Подключение к хранилищу";
             uploader.Connect();
