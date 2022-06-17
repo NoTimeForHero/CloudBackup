@@ -1,11 +1,15 @@
 {
+  "ID": "Example_Config",
   "HostingURI": "http://localhost:9000",
-  "Cloud": {
-    "Provider": "https://s3.selcdn.ru",
-    "Login": "999999_UserPrefix",
-    "Password": "Password123456",
-    "Container": "BucketName",
-    "ForcePathStyle": true
+  "Uploader": {
+    "Type": "CloudBackuper.Plugins.S3Uploader",
+    "Settings": {
+      "Provider": "https://s3.selcdn.ru",
+      "Login": "999999_UserPrefix",
+      "Password": "Password123456",
+      "Container": "BucketName",
+      "ForcePathStyle": true
+    }
   },
   "Logging": {
     "Level": "INFO",
@@ -32,6 +36,7 @@
   },
   "Jobs": [
     {
+      "Id": "system_files",
       "Name": "System files",
       "Description": null,
       "CronSchedule": "0 0 18 * * ?",
@@ -44,6 +49,7 @@
       }
     },
     {
+      "Id": "user_files",
       "Name": "User files",
       "Description": null,
       "RunAfter": "System files",

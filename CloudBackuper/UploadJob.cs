@@ -111,6 +111,9 @@ namespace CloudBackuper
             }
             catch (Exception exception)
             {
+                var jobState = getState(context);
+                // TODO: Reset job status?
+                jobState.done("Ошибка!");
                 logger.Error($"Задача '{context.JobDetail.Key.Name}' кинула ошибку {exception.GetType().FullName}!");
                 logger.Error("Сообщение: " + exception.Message);
                 logger.Error(exception.StackTrace);
@@ -122,7 +125,7 @@ namespace CloudBackuper
         {
             var dataMap = context.JobDetail.JobDataMap;
             var container = context.Scheduler.Context["container"] as IUnityContainer;
-            var cfgCloud = (context.Scheduler.Context["config"] as Config)?.Cloud;
+            var uploader = container.Resolve<UploadManager>().Resolve();
             var jobIndex = (int) dataMap["index"];
             var cfgJob = dataMap["data"] as Config_Job;
 
@@ -144,8 +147,8 @@ namespace CloudBackuper
             jobState.status = "Построение списка файлов";
             var files = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks);
 
-            jobState.status = "Подключение к S3 хранилищу";
-            var s3 = Uploader_S3.GetInstance(cfgCloud);
+            jobState.status = "Подключение к хранилищу";
+            uploader.Connect();
 
             using (var zip = new ZipTools(cfgJob.Path, files, cfgJob.Password))
             {
@@ -157,7 +160,7 @@ namespace CloudBackuper
                 });
 
                 jobState.isBytes = true;
-                s3.UploadFile(zipFilename, filename, (sender, args) =>
+                uploader.UploadFile(zipFilename, filename, (sender, args) =>
                 {
                     jobState.status = $"Отправка архива {filename}";
                     jobState.current = args.TransferredBytes;
@@ -165,7 +168,8 @@ namespace CloudBackuper
                 });
             }
 
-            jobState.done();
+            uploader.Disconnect();
+            jobState.done("Задача успешно завершена!");
             logger.Info($"Задача №{jobIndex} завершена: {cfgJob.Name}");
         }
     }
@@ -179,9 +183,9 @@ namespace CloudBackuper
         public long current { get; set; }
         public long total { get; set; }
 
-        public void done()
+        public void done(string status)
         {
-            status = "Задача успешно завершена!";
+            this.status = status;
             inProgress = false;
             isBytes = false;
             current = 0;

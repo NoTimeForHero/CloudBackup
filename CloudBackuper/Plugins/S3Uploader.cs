@@ -5,28 +5,28 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using Newtonsoft.Json.Linq;
 using NLog;
+using Unity;
 
-namespace CloudBackuper
+namespace CloudBackuper.Plugins
 {
-    class Uploader_S3
+    class S3Uploader : IUploader
     {
         protected AmazonS3Client client;
         protected S3Bucket bucket;
         protected TransferUtility transferUtility;
+        protected Settings settings;
 
         protected static readonly Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        private static Uploader_S3 _instance;
-        private static readonly object padlock = new object();
-        public static Uploader_S3 GetInstance(Config_S3 settings)
+
+        public void Initialize(JObject input)
         {
-            lock (padlock)
-            {
-                return _instance ?? (_instance = new Uploader_S3(settings));
-            }
+            settings = input.ToObject<Settings>();
+            if (settings == null) throw new ApplicationException($"Не удалось десериализовать JSON в {nameof(Settings)} конфиг!");
         }
 
-        protected Uploader_S3(Config_S3 settings)
+        public void Connect()
         {
             AmazonS3Config config = new AmazonS3Config();
             config.ServiceURL = settings.Provider;
@@ -48,10 +48,15 @@ namespace CloudBackuper
             transferUtility = new TransferUtility(client);
             ListBucketsResponse response = client.ListBuckets();
 
-            bucket = response.Buckets.First(x => x.BucketName == settings.Container);
-            if (bucket == null) throw new InvalidOperationException($"Can't find S3 bucket: {settings.Container}");
+            bucket = response.Buckets.FirstOrDefault(x => x.BucketName == settings.Container);
+            if (bucket == null) throw new InvalidOperationException($"Не найден S3 контейнер: {settings.Container}");
 
             logger.Info($"Подключены к S3 хранилищу от имени '{settings.Login}' к контейнеру '{settings.Container}'");
+        }
+
+        public void Disconnect()
+        {
+            logger.Debug("Отключение от S3 хранилища...");
         }
 
         public void UploadFile(string path, string destName, EventHandler<StreamTransferProgressArgs> callback=null)
@@ -67,6 +72,24 @@ namespace CloudBackuper
 
             client.PutObject(request);
             logger.Info($"Архив '{destName}' успешно загружен в S3!");
+        }
+
+        protected class Settings
+        {
+            public string Provider { get; set; }
+            public string Login { get; set; }
+            public string Password { get; set; }
+            public string Container { get; set; }
+            public Config_Proxy Proxy { get; set; }
+            public bool ForcePathStyle { get; set; }
+
+            public class Config_Proxy
+            {
+                public string Host { get; set; }
+                public int Port { get; set; }
+                public string Login { get; set; }
+                public string Password { get; set; }
+            }
         }
     }
 }

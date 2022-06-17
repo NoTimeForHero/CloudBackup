@@ -12,13 +12,21 @@ namespace CloudBackuper
 {
     public class Config
     {
-        public Config_S3 Cloud { get; set; }
+        [JsonProperty(Required = Required.Always)]
+        public string Id { get; set; }
+        public Config_Uploader Uploader { get; set; }
         public Config_JobRetrying JobRetrying { get; set; }
         public List<Config_Job> Jobs { get; set; }
         public string HostingURI { get; set; } = "http://localhost:3000";
 
         [JsonConverter(typeof(ConfigLogging_JsonConverter))]
         public Config_Logging Logging { get; set; }
+    }
+
+    public class Config_Uploader
+    {
+        public string Type { get; set; }
+        public JObject Settings { get; set; }
     }
 
     public class Config_Logging
@@ -38,24 +46,6 @@ namespace CloudBackuper
         public int WaitSeconds { get; set; }
     }
 
-    public class Config_S3
-    {
-        public string Provider { get; set; }
-        public string Login { get; set; }
-        public string Password { get; set; }
-        public string Container { get; set; }
-        public Config_Proxy Proxy { get; set; }
-        public bool ForcePathStyle { get; set; }
-
-        public class Config_Proxy
-        {
-            public string Host { get; set; }
-            public int Port { get; set; }
-            public string Login { get; set; }
-            public string Password { get; set; }
-        }
-    }
-
     public class Config_Masks
     {
         public string[] DirectoriesExcluded { get; set; }
@@ -65,6 +55,8 @@ namespace CloudBackuper
 
     public class Config_Job
     {
+        [JsonProperty(Required = Required.Always)]
+        public string Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string CronSchedule { get; set; }
