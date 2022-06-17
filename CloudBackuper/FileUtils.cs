@@ -71,6 +71,14 @@ namespace CloudBackuper
             return output;
         }
 
+        public static bool IsAssembly(string path)
+        {
+            var extension = Path.GetExtension(path);
+            if (extension == ".exe") return true;
+            if (extension == ".dll") return true;
+            return false;
+        }
+
         private static class RelativePath
         {
             public static int GetPathAttribute(string path)

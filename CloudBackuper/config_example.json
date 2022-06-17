@@ -2,13 +2,10 @@
   "ID": "Example_Config",
   "HostingURI": "http://localhost:9000",
   "Uploader": {
-    "Type": "CloudBackuper.Plugins.S3Uploader",
+    "Type": "CloudBackuper.Plugins.FakeUploader",
     "Settings": {
-      "Provider": "https://s3.selcdn.ru",
-      "Login": "999999_UserPrefix",
-      "Password": "Password123456",
-      "Container": "BucketName",
-      "ForcePathStyle": true
+      "Hello": "World!",
+      "Number": 42
     }
   },
   "Logging": {

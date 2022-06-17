@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Amazon.Runtime;
 using Newtonsoft.Json.Linq;
 using NLog;
 
@@ -13,7 +12,7 @@ namespace CloudBackuper.Plugins
     {
         public Logger logger = LogManager.GetCurrentClassLogger();
 
-        public void Initialize(JObject settings)
+        public void Initialize(object settings)
         {
             logger.Info($"{nameof(FakeUploader)}->Initialize()!");
         }
@@ -23,7 +22,7 @@ namespace CloudBackuper.Plugins
             logger.Info($"{nameof(FakeUploader)}->Connect()!");
         }
 
-        public void UploadFile(string path, string destName, EventHandler<StreamTransferProgressArgs> callback = null)
+        public void UploadFile(string path, string destName, Action<UploaderProgress> callback = null)
         {
             logger.Info($"{nameof(FakeUploader)}->UploadFile({path}, {destName})");
         }

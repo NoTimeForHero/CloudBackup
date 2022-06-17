@@ -125,7 +125,7 @@ namespace CloudBackuper
         {
             var dataMap = context.JobDetail.JobDataMap;
             var container = context.Scheduler.Context["container"] as IUnityContainer;
-            var uploader = container.Resolve<UploadManager>().Resolve();
+            var uploader = container.Resolve<PluginManager>().Uploader;
             var jobIndex = (int) dataMap["index"];
             var cfgJob = dataMap["data"] as Config_Job;
 
@@ -160,11 +160,11 @@ namespace CloudBackuper
                 });
 
                 jobState.isBytes = true;
-                uploader.UploadFile(zipFilename, filename, (sender, args) =>
+                uploader.UploadFile(zipFilename, filename, (progress) =>
                 {
                     jobState.status = $"Отправка архива {filename}";
-                    jobState.current = args.TransferredBytes;
-                    jobState.total = args.TotalBytes;
+                    jobState.current = progress.current;
+                    jobState.total = progress.total;
                 });
             }
 

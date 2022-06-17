@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29424.173
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudBackup", "CloudBackuper\CloudBackup.csproj", "{BF79C5FD-D185-46C9-9AD3-638E44EA6D47}"
 EndProject
@@ -12,6 +12,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceRunner", "ServiceRunner\ServiceRunner.csproj", "{C81DEB2A-374E-43CB-A5D6-898FF67689E2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinClient", "WinClient\WinClient.csproj", "{ACC6ECA2-1D14-4200-A8CD-0CC6253A8EEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plugin_AmazonS3", "Plugin_AmazonS3\Plugin_AmazonS3.csproj", "{76579449-4FBE-4D5B-AFFB-A31A3FCB2509}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudBackup_PluginCore", "CloudBackup_PluginCore\CloudBackup_PluginCore.csproj", "{8F49B0EF-C236-47D4-8EAC-A83389DABA6A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{ACC6ECA2-1D14-4200-A8CD-0CC6253A8EEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ACC6ECA2-1D14-4200-A8CD-0CC6253A8EEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ACC6ECA2-1D14-4200-A8CD-0CC6253A8EEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76579449-4FBE-4D5B-AFFB-A31A3FCB2509}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76579449-4FBE-4D5B-AFFB-A31A3FCB2509}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76579449-4FBE-4D5B-AFFB-A31A3FCB2509}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76579449-4FBE-4D5B-AFFB-A31A3FCB2509}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F49B0EF-C236-47D4-8EAC-A83389DABA6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F49B0EF-C236-47D4-8EAC-A83389DABA6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F49B0EF-C236-47D4-8EAC-A83389DABA6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F49B0EF-C236-47D4-8EAC-A83389DABA6A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

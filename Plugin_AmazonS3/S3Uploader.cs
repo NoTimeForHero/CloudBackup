@@ -7,7 +7,6 @@ using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Newtonsoft.Json.Linq;
 using NLog;
-using Unity;
 
 namespace CloudBackuper.Plugins
 {
@@ -20,9 +19,10 @@ namespace CloudBackuper.Plugins
 
         protected static readonly Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public void Initialize(JObject input)
+        public void Initialize(object input)
         {
-            settings = input.ToObject<Settings>();
+            if (!(input is JObject jVal)) throw new ApplicationException($"Параметр не является JObject!");
+            settings = jVal.ToObject<Settings>();
             if (settings == null) throw new ApplicationException($"Не удалось десериализовать JSON в {nameof(Settings)} конфиг!");
         }
 
@@ -59,7 +59,7 @@ namespace CloudBackuper.Plugins
             logger.Debug("Отключение от S3 хранилища...");
         }
 
-        public void UploadFile(string path, string destName, EventHandler<StreamTransferProgressArgs> callback=null)
+        public void UploadFile(string path, string destName, Action<UploaderProgress> callback=null)
         {
             logger.Debug($"Загружаем в облако архив '{destName}'");
 
@@ -68,7 +68,15 @@ namespace CloudBackuper.Plugins
             request.Key = destName;
             request.FilePath = path;
             request.UseChunkEncoding = false;
-            if (callback != null) request.StreamTransferProgress += callback;
+            if (callback != null)
+            {
+                var progress = new UploaderProgress();
+                request.StreamTransferProgress += (o, ev) =>
+                {
+                    progress.Update((int)ev.TransferredBytes, (int)ev.TotalBytes);
+                    callback(progress);
+                };
+            }
 
             client.PutObject(request);
             logger.Info($"Архив '{destName}' успешно загружен в S3!");

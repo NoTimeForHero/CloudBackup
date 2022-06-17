@@ -40,12 +40,6 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AWSSDK.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=885c28607f98e604, processorArchitecture=MSIL">
-      <HintPath>..\packages\AWSSDK.Core.3.3.103.66\lib\net45\AWSSDK.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="AWSSDK.S3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=885c28607f98e604, processorArchitecture=MSIL">
-      <HintPath>..\packages\AWSSDK.S3.3.3.108\lib\net45\AWSSDK.S3.dll</HintPath>
-    </Reference>
     <Reference Include="DotNetZip, Version=1.13.8.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
       <HintPath>..\packages\DotNetZip.1.13.8\lib\net40\DotNetZip.dll</HintPath>
     </Reference>
@@ -97,16 +91,14 @@
   <ItemGroup>
     <Compile Include="Config.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="Plugins\FakeUploader.cs" />
-    <Compile Include="Plugins\IUploader.cs" />
+    <Compile Include="FakeUploader.cs" />
     <Compile Include="FileUtils.cs" />
     <Compile Include="JobController.cs" />
     <Compile Include="JSEngine.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Plugins\S3Uploader.cs" />
     <Compile Include="UploadJob.cs" />
-    <Compile Include="UploadManager.cs" />
+    <Compile Include="PluginManager.cs" />
     <Compile Include="WebServer.cs" />
     <Compile Include="WebSocketStatus.cs" />
     <Compile Include="ZipTools.cs" />
@@ -145,7 +137,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\packages\AWSSDK.S3.3.3.108\analyzers\dotnet\cs\AWSSDK.S3.CodeAnalysis.dll" />
+    <ProjectReference Include="..\CloudBackup_PluginCore\CloudBackup_PluginCore.csproj">
+      <Project>{8F49B0EF-C236-47D4-8EAC-A83389DABA6A}</Project>
+      <Name>CloudBackup_PluginCore</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

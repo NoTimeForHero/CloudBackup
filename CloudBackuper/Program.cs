@@ -89,7 +89,7 @@ namespace CloudBackuper
             var controller = await new JobController(container).Constructor(config);
             container.RegisterInstance(controller);
 
-            container.RegisterSingleton<UploadManager>().Resolve<UploadManager>();
+            container.RegisterSingleton<PluginManager>().Resolve<PluginManager>();
 
             var staticFilesPath = Path.Combine(AppPath, "WebApp");
             logger.Debug($"Путь до папки со статикой: {staticFilesPath}");
