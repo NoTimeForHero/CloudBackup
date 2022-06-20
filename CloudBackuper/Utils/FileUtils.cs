@@ -35,7 +35,7 @@ namespace CloudBackuper
                 var dirPath = Path.Combine(path, dir);
                 var dirNode = new Node { Name = dirName, FullPath = dirPath };
                 dirNode = GetFilesInDirectory(dirPath, masks, getFiles, getDirectories, dirNode, flattenFiles);
-                flattenFiles?.AddRange(dirNode.Files);
+                // flattenFiles?.AddRange(dirNode.Files);
                 node.Nodes.Add(dirNode);
             }
 
@@ -55,15 +55,34 @@ namespace CloudBackuper
             return node;
         }
 
-        public class Node
+        public static Node SliceNodes(Node input, int maxDepth, int maxSize, int currentLevel = 0)
+        { 
+            return input;
+        }
+
+        public class Node : ICloneable
         {
             public string Name;
             public string FullPath;
+            public string MetaData;
             public List<string> Files = new List<string>();
             public List<Node> Nodes = new List<Node>();
 
             public override string ToString()
                 => $"[Node Name={Name}, FullPath={FullPath}, Files={Files.Count}, Children={Nodes.Count}]";
+
+            public object Clone()
+            {
+                var clone = new Node
+                {
+                    Name = Name,
+                    FullPath = FullPath,
+                    MetaData = MetaData,
+                    Files = new List<string>(Files),
+                    Nodes = Nodes.Select(x => (Node)x.Clone()).ToList()
+                };
+                return clone;
+            }
         }
 
         // Best way to convert absolute path to relative
