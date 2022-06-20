@@ -53,11 +53,6 @@ namespace CloudBackuper
             }
         }
 
-        protected void Func_Debug(string message)
-        {
-            logger.Debug(message);
-        }
-
         protected JsValue execute(string function, params object[] args)
         {
             engine.SetValue("datetime", DateTime.Now);
@@ -65,7 +60,10 @@ namespace CloudBackuper
 
             engine.SetValue("md5", (Func<string, string>)Func_MD5);
             engine.SetValue("no_space", (Func<string, string, string>)Func_NoSpace);
-            engine.SetValue("debug", (Action<string>)Func_Debug);
+            engine.SetValue("debug", (Action<string>)logger.Debug);
+            engine.SetValue("info", (Action<string>)logger.Info);
+            engine.SetValue("warn", (Action<string>)logger.Warn);
+            engine.SetValue("error", (Action<string>)((message) => throw new ApplicationException(message)));
             engine.SetValue("format_datetime", (Func<string, string, string>) Func_FormatDateTime);
 
             try

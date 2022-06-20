@@ -5,7 +5,8 @@
     string md5(string input) - MD5 от заданной строки
     string no_space(string input, string target="_") - заменить все пробелы в имени на указанный во 2 аргументе символ (подстроку)
     string format_datetime(string format, string culture_info=null) - форматировать текущую дату-время по строке формата
-    void debug(string message) - отправить сообщение в логгер с уровнем DEBUG
+    void [debug|info|warn](string message) - отправить сообщение в логгер с указанным уровнем
+    void error(string message) - выбросить исключение ApplicationException(message)
 */
 // ReSharper disable UseOfImplicitGlobalInFunctionScope
 
