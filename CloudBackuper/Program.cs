@@ -21,6 +21,7 @@ namespace CloudBackuper
 {
     public sealed class Program : IDisposable, IShutdown
     {
+        private static bool DEBUG_MODE;
         private readonly AutoResetEvent waitShutdown = new AutoResetEvent(false);
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly IUnityContainer container = new UnityContainer();
@@ -40,6 +41,7 @@ namespace CloudBackuper
             using (var program = new Program())
             {
 #if DEBUG
+                DEBUG_MODE = true;
                 program.RunVoid(program, url => Process.Start(url));
 #else
                 await program.Run(program);
@@ -94,7 +96,7 @@ namespace CloudBackuper
 
             var staticFilesPath = Path.Combine(AppPath, "WebApp");
             logger.Debug($"Путь до папки со статикой: {staticFilesPath}");
-            webServer = new WebServer(container, staticFilesPath);
+            webServer = new WebServer(container, staticFilesPath, DEBUG_MODE);
 
             runAfter?.Invoke(config.HostingURI);
 

@@ -20,13 +20,11 @@ namespace CloudBackuper.Web
     {
         protected ILogger logger = LogManager.GetCurrentClassLogger();
         protected IShutdown shutdown;
-        protected IScheduler scheduler;
         protected EmbedServer server;
 
         public WebServer(IUnityContainer container, string pathStaticFiles=null, bool developmentMode=false)
         {
             var config = container.Resolve<Config>();
-            scheduler = container.Resolve<IScheduler>();
             shutdown = container.IsRegistered<IShutdown>() ? container.Resolve<IShutdown>() : null;
 
             var options = new WebServerOptions()
@@ -50,9 +48,9 @@ namespace CloudBackuper.Web
 
             if (developmentMode) server.WithCors();
 
-            server.WithModule(nameof(WebSocketStatus), new WebSocketStatus(scheduler, "/ws-status"));
+            server.WithModule(nameof(WebSocketStatus), new WebSocketStatus(container, "/ws-status"));
 
-            server.WithWebApi("/api", m => m.WithController(() => new JobController(shutdown, scheduler)))
+            server.WithWebApi("/api", m => m.WithController(() => new MainController(container)))
                 .WithModule(new ActionModule("/settings.json", HttpVerbs.Get, ctx => ctx.SendDataAsync(frontendSettings)));
 
             if (pathStaticFiles != null) server.WithStaticFolder("/", pathStaticFiles, true);
@@ -74,17 +72,19 @@ namespace CloudBackuper.Web
             return $"{title} {version}";
         }
 
-        protected class JobController : WebApiController
+        protected class MainController : WebApiController
         {
             protected MemoryTarget memoryTarget;
             protected IShutdown shutdown;
             protected IScheduler scheduler;
+            private PluginManager pm;
 
-            public JobController(IShutdown shutdown, IScheduler scheduler)
+            public MainController(IUnityContainer container)
             {
                 memoryTarget = LogManager.Configuration.AllTargets.OfType<MemoryTarget>().FirstOrDefault();
-                this.scheduler = scheduler;
-                this.shutdown = shutdown;
+                scheduler = container.Resolve<IScheduler>();
+                shutdown = container.IsRegistered<IShutdown>() ? container.Resolve<IShutdown>() : null;
+                pm = container.Resolve<PluginManager>();
             }
 
             [Route(HttpVerbs.Any, "/logs")]
@@ -92,6 +92,9 @@ namespace CloudBackuper.Web
             {
                 return memoryTarget?.Logs.Reverse();
             }
+
+            [Route(HttpVerbs.Any, "/plugins")]
+            public IEnumerable<object> Plugins() => pm.Plugins;
 
             [Route(HttpVerbs.Any, "/jobs")]
             public object Index()

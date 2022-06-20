@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using NLog;
 using Quartz;
+using Unity;
 
 namespace CloudBackuper
 {
@@ -22,13 +23,13 @@ namespace CloudBackuper
 
         protected CancellationTokenSource checkRunningJobsTokenSource;
 
-        public WebSocketStatus(IScheduler scheduler, string urlPath, CancellationTokenSource tokenSource = null, int updateIntervalMs = 300) : base(urlPath, true)
+        public WebSocketStatus(IUnityContainer container, string urlPath, CancellationTokenSource tokenSource = null, int updateIntervalMs = 300) : base(urlPath, true)
         {
             logger.Info($"Запущен WebSocket сервер по пути '{urlPath}' с интервалом обновления {updateIntervalMs} миллисекунд");
             if (tokenSource == null) tokenSource = new CancellationTokenSource();
             updateInterval = updateIntervalMs;
             this.tokenSource = tokenSource;
-            this.scheduler = scheduler;
+            scheduler = container.Resolve<IScheduler>();
             scheduler.ListenerManager.AddJobListener(this);
         }
 
