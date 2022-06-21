@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using CloudBackuper;
+using CloudBackuper.Utils;
 using CloudBackuper.Web;
 using NLog;
 using NLog.Config;
@@ -134,7 +135,7 @@ namespace TestFrontend
                 await Task.Delay(200);
             }
 
-            jobState.done();
+            jobState.done("Test...");
         }
     }
 }

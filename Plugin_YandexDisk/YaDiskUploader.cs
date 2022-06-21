@@ -16,19 +16,21 @@ namespace Plugin_YandexDisk
         private Settings settings;
         private IDiskApi diskApi;
 
-        public void Initialize(object input)
+        public Task Initialize(object input)
         {
             if (!(input is JObject jVal)) throw new ApplicationException($"Параметр не является JObject!");
             settings = jVal.ToObject<Settings>();
             if (settings == null) throw new ApplicationException($"Не удалось десериализовать JSON в {nameof(Settings)} конфиг!");
+            return Task.CompletedTask;
         }
 
-        public void Connect()
+        public Task Connect()
         {
             diskApi = new DiskHttpApi(settings.OAuthToken);
+            return Task.CompletedTask;
         }
 
-        public async void UploadFile(string path, string destName, Action<UploaderProgress> callback = null)
+        public async Task UploadFile(string path, string destName, Action<UploaderProgress> callback = null)
         {
             using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
@@ -39,9 +41,10 @@ namespace Plugin_YandexDisk
             }
         }
 
-        public void Disconnect()
+        public Task Disconnect()
         {
             diskApi.Dispose();
+            return Task.CompletedTask;
         }
     }
 

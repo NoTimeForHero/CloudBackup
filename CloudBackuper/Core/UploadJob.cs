@@ -67,7 +67,7 @@ namespace CloudBackuper
             var nodes = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks, flattenFiles: files);
 
             jobState.status = "Подключение к хранилищу";
-            uploader.Connect();
+            await uploader.Connect();
 
             using (var zip = new ZipTools(cfgJob.Path, files, cfgJob.Password))
             {
@@ -79,7 +79,7 @@ namespace CloudBackuper
                 });
 
                 jobState.isBytes = true;
-                uploader.UploadFile(zipFilename, filename, (progress) =>
+                await uploader.UploadFile(zipFilename, filename, (progress) =>
                 {
                     jobState.status = $"Отправка архива {filename}";
                     jobState.current = progress.current;
@@ -87,7 +87,7 @@ namespace CloudBackuper
                 });
             }
 
-            uploader.Disconnect();
+            await uploader.Disconnect();
             jobState.done("Задача успешно завершена!");
             logger.Info($"Задача №{jobIndex} завершена: {cfgJob.Name}");
         }

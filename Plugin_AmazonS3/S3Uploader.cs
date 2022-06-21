@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -19,14 +20,15 @@ namespace CloudBackuper.Plugins
 
         protected static readonly Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public void Initialize(object input)
+        public Task Initialize(object input)
         {
             if (!(input is JObject jVal)) throw new ApplicationException($"Параметр не является JObject!");
             settings = jVal.ToObject<Settings>();
             if (settings == null) throw new ApplicationException($"Не удалось десериализовать JSON в {nameof(Settings)} конфиг!");
+            return Task.CompletedTask;
         }
 
-        public void Connect()
+        public async Task Connect()
         {
             AmazonS3Config config = new AmazonS3Config();
             config.ServiceURL = settings.Provider;
@@ -46,7 +48,7 @@ namespace CloudBackuper.Plugins
 
             client = new AmazonS3Client(settings.Login, settings.Password, config);
             transferUtility = new TransferUtility(client);
-            ListBucketsResponse response = client.ListBuckets();
+            ListBucketsResponse response = await client.ListBucketsAsync();
 
             bucket = response.Buckets.FirstOrDefault(x => x.BucketName == settings.Container);
             if (bucket == null) throw new InvalidOperationException($"Не найден S3 контейнер: {settings.Container}");
@@ -54,12 +56,13 @@ namespace CloudBackuper.Plugins
             logger.Info($"Подключены к S3 хранилищу от имени '{settings.Login}' к контейнеру '{settings.Container}'");
         }
 
-        public void Disconnect()
+        public Task Disconnect()
         {
             logger.Debug("Отключение от S3 хранилища...");
+            return Task.CompletedTask;
         }
 
-        public void UploadFile(string path, string destName, Action<UploaderProgress> callback=null)
+        public async Task UploadFile(string path, string destName, Action<UploaderProgress> callback=null)
         {
             logger.Debug($"Загружаем в облако архив '{destName}'");
 
@@ -78,7 +81,7 @@ namespace CloudBackuper.Plugins
                 };
             }
 
-            client.PutObject(request);
+            await client.PutObjectAsync(request);
             logger.Info($"Архив '{destName}' успешно загружен в S3!");
         }
 

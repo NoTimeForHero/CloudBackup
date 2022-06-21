@@ -12,17 +12,19 @@ namespace CloudBackuper.Plugins
     {
         public Logger logger = LogManager.GetCurrentClassLogger();
 
-        public void Initialize(object settings)
+        public Task Initialize(object settings)
         {
             logger.Info($"{nameof(FakeUploader)}->Initialize()!");
+            return Task.CompletedTask;
         }
 
-        public void Connect()
+        public Task Connect()
         {
             logger.Info($"{nameof(FakeUploader)}->Connect()!");
+            return Task.CompletedTask;
         }
 
-        public async void UploadFile(string path, string destName, Action<UploaderProgress> callback = null)
+        public async Task UploadFile(string path, string destName, Action<UploaderProgress> callback = null)
         {
             logger.Info($"{nameof(FakeUploader)}->UploadFile({path}, {destName})");
             var progress = new UploaderProgress();
@@ -36,9 +38,10 @@ namespace CloudBackuper.Plugins
             }
         }
 
-        public void Disconnect()
+        public Task Disconnect()
         {
             logger.Info($"{nameof(FakeUploader)}->Disconnect()!");
+            return Task.CompletedTask;
         }
     }
 }
