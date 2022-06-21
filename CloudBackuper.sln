@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plugin_AmazonS3", "Plugin_A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudBackup_PluginCore", "CloudBackup_PluginCore\CloudBackup_PluginCore.csproj", "{8F49B0EF-C236-47D4-8EAC-A83389DABA6A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plugin_YandexDisk", "Plugin_YandexDisk\Plugin_YandexDisk.csproj", "{7B3876F2-48CF-41D5-B979-5E56DD25C56F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{8F49B0EF-C236-47D4-8EAC-A83389DABA6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F49B0EF-C236-47D4-8EAC-A83389DABA6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F49B0EF-C236-47D4-8EAC-A83389DABA6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B3876F2-48CF-41D5-B979-5E56DD25C56F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B3876F2-48CF-41D5-B979-5E56DD25C56F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B3876F2-48CF-41D5-B979-5E56DD25C56F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B3876F2-48CF-41D5-B979-5E56DD25C56F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
