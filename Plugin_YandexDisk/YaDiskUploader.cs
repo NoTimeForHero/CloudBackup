@@ -2,19 +2,18 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CloudBackuper.Plugins;
 using Newtonsoft.Json.Linq;
-using YandexDisk.Client;
-using YandexDisk.Client.Http;
 
 namespace Plugin_YandexDisk
 {
     internal class YaDiskUploader : IUploader
     {
         private Settings settings;
-        private IDiskApi diskApi;
+        private WebClient webClient;
 
         public Task Initialize(object input)
         {
@@ -26,24 +25,26 @@ namespace Plugin_YandexDisk
 
         public Task Connect()
         {
-            diskApi = new DiskHttpApi(settings.OAuthToken);
+            webClient = new WebClient(settings.OAuthToken);
             return Task.CompletedTask;
         }
 
-        public async Task UploadFile(string path, string destName, Action<UploaderProgress> callback = null)
+        public async Task UploadFile(string path, string remote, Action<UploaderProgress> callback = null)
         {
+            var file = new FileInfo(remote);
+
             using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
-                var uploadPath = settings.UploadDir + "/" + destName;
-                var uploadLink = await diskApi.Files.GetUploadLinkAsync(uploadPath, true);
-                // TODO: Обновление прогресса загрузки?
-                await diskApi.Files.UploadAsync(uploadLink, fs);
+                var uploadPath = settings.UploadDir + "/" + file.Path;
+                var uploadLink = await webClient.GetUploadLink(uploadPath + "/" + file.SafeName, true);
+                await webClient.UploadFile(uploadLink, fs, callback);
+                if (!file.IsNameSafe) await webClient.RenameFile(uploadPath, file.SafeName, file.Name);
             }
         }
 
         public Task Disconnect()
         {
-            diskApi.Dispose();
+            webClient.Dispose();
             return Task.CompletedTask;
         }
     }
