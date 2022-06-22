@@ -11,10 +11,14 @@ namespace CloudBackuper.Plugins
     internal class FakeUploader : IUploader
     {
         public Logger logger = LogManager.GetCurrentClassLogger();
+        private Settings settings;
 
-        public Task Initialize(object settings)
+        public Task Initialize(object input)
         {
             logger.Info($"{nameof(FakeUploader)}->Initialize()!");
+            if (!(input is JObject jVal)) throw new ApplicationException($"Параметр не является JObject!");
+            settings = jVal.ToObject<Settings>();
+            if (settings == null) throw new ApplicationException($"Не удалось десериализовать JSON в {nameof(Settings)} конфиг!");
             return Task.CompletedTask;
         }
 
@@ -28,8 +32,8 @@ namespace CloudBackuper.Plugins
         {
             logger.Info($"{nameof(FakeUploader)}->UploadFile({path}, {destName})");
             var progress = new UploaderProgress();
-            int max = 20 * 1024 * 1024;
-            var step = 10 * 1240;
+            int max = settings.FileSize ?? 20 * 1024 * 1024;
+            var step = settings.Speed ?? 10 * 1240;
             for (int i = 0; i < max; i += step)
             {
                 progress.Update(i, max);
@@ -42,6 +46,12 @@ namespace CloudBackuper.Plugins
         {
             logger.Info($"{nameof(FakeUploader)}->Disconnect()!");
             return Task.CompletedTask;
+        }
+
+        private class Settings
+        {
+            public int? FileSize { get; set; }
+            public int? Speed { get; set; }
         }
     }
 }

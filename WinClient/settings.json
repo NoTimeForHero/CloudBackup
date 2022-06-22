@@ -1,6 +1,7 @@
 ﻿{
   "topmost": true,
-  "watch": "ws://localhost:3000/ws-status",
+  "urlWatch": "ws://localhost:3000/ws-status",
+  "urlStartJob": "http://localhost:3000/api/jobs/start/{0}",
   "shutdown_computer": "00:01:00",
-  "debug_mode": true 
+  "debug_mode": true
 }

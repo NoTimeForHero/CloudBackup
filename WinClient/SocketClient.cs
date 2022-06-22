@@ -26,7 +26,7 @@ namespace WinClient
             this.config = config;
             this.status = status;
             this.token = token ?? CancellationToken.None;
-            uri = new Uri(config.watch);
+            uri = new Uri(config.urlWatch);
         }
 
         public void StartAsync()

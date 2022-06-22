@@ -14,6 +14,7 @@ namespace WinClient
 {
     partial class FormStatus : Form
     {
+        public static FormStatus Instance { get; private set; }
         protected readonly List<Timer> timers = new List<Timer>();
         protected UserControl currentPanel;
 
@@ -38,9 +39,10 @@ namespace WinClient
         public FormStatus(Config config)
         {
             InitializeComponent();
+            Instance = this;
             Text = Program.Title;
             btnMinimize.Click += (o, ev) => WindowState = FormWindowState.Minimized;
-            btnClose.Click += (o, ev) => Close();
+            btnClose.Click += (o, ev) => Program.exitConfirm();
             lblFormTitle.Text = Text;
             lblFormTitle.MouseDown += (o, ev) => Win32.DragWindow(Handle);
             createRoundedBorder(20, 3);

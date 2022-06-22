@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -23,13 +25,13 @@ namespace WinClient
         /// Главная точка входа для приложения.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             var config = File.Exists("settings.json") ? JsonConvert.DeserializeObject<Config>(File.ReadAllText("settings.json")) : Config.Default;
-            var _ = new Program(config);
+            var _ = new Program(args, config);
         }
 
-        private Program(Config config)
+        private Program(string[] args, Config config)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -51,9 +53,22 @@ namespace WinClient
                 menuDebug.Click += (o, ev) => controller.runDebug();
             }
 
+            if (args.Length == 2 && args[0] == "RunJob")
+            {
+                startJob(config.urlStartJob, args[1]).GetAwaiter().GetResult();
+            }
             //Test(controller);
 
             Application.Run();
+        }
+
+        private async Task startJob(string url, string name)
+        {
+            var client = new HttpClient();
+            name = WebUtility.UrlEncode(name);
+            var uri = new Uri(string.Format(url, name));
+            var response = await client.PostAsync(uri, new StringContent(string.Empty));
+            response.EnsureSuccessStatusCode();
         }
 
         private static void Test(GuiController controller)
@@ -83,9 +98,10 @@ namespace WinClient
         public static bool exitConfirm()
         {
             var message = "Вы действительно хотите выйти?\n\nОстановка данного приложения НЕ отменит процесс резервного копирования!\nЗа него отвечает отдельный сервис.";
-            var result = MessageBox.Show(message, "Подтверждение выхода", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            var result = MessageBox.Show(FormStatus.Instance, message, "Подтверждение выхода", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.Yes) Application.Exit();
             return result == DialogResult.Yes;
+            // return false;
         }
 
         void MakeTrayIcon(out MenuItem itemStatus, out MenuItem itemDebug)
