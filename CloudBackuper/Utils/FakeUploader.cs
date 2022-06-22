@@ -28,13 +28,13 @@ namespace CloudBackuper.Plugins
         {
             logger.Info($"{nameof(FakeUploader)}->UploadFile({path}, {destName})");
             var progress = new UploaderProgress();
-            int max = 50 * 1000;
-            var step = 1240;
+            int max = 20 * 1024 * 1024;
+            var step = 10 * 1240;
             for (int i = 0; i < max; i += step)
             {
                 progress.Update(i, max);
                 callback?.Invoke(progress);
-                await Task.Delay(300);
+                await Task.Delay(50);
             }
         }
 

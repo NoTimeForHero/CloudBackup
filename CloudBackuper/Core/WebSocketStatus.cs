@@ -23,7 +23,7 @@ namespace CloudBackuper
 
         protected CancellationTokenSource checkRunningJobsTokenSource;
 
-        public WebSocketStatus(IUnityContainer container, string urlPath, CancellationTokenSource tokenSource = null, int updateIntervalMs = 300) : base(urlPath, true)
+        public WebSocketStatus(IUnityContainer container, string urlPath, CancellationTokenSource tokenSource = null, int updateIntervalMs = 100) : base(urlPath, true)
         {
             logger.Info($"Запущен WebSocket сервер по пути '{urlPath}' с интервалом обновления {updateIntervalMs} миллисекунд");
             if (tokenSource == null) tokenSource = new CancellationTokenSource();
@@ -36,20 +36,22 @@ namespace CloudBackuper
         protected override void OnStart(CancellationToken cancellationToken)
         {
             jobStates = scheduler.Context["states"] as Dictionary<JobKey, UploadJobState>;
+
+            if (jobStates != null)
+                foreach (var job in jobStates.Values)
+                    job.onUpdate += (ev) => EventLoop();
+
             Task.Factory.StartNew(async () =>
             {
                 while (!tokenSource.IsCancellationRequested)
                 {
-                    var _ = EventLoop();
+                    await EventLoop();
                     await Task.Delay(updateInterval, tokenSource.Token);
                 }
-            }, TaskCreationOptions.LongRunning); // LongRunning - означает что для Задачи по возможности будет выделен отдельный поток
+            }, TaskCreationOptions.LongRunning);
         }
 
-        protected async Task EventLoop()
-        {
-            await BroadcastProgress(Caller.EventLoop);
-        }
+        protected Task EventLoop() => BroadcastProgress(Caller.EventLoop);
 
         protected void BroadcastIfAllJobsCompleted()
         {

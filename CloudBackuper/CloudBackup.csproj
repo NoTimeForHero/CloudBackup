@@ -90,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="Core\UploadJobState.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\FakeUploader.cs" />
     <Compile Include="Utils\FileUtils.cs" />

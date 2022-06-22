@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,8 +62,8 @@ namespace CloudBackuper
             Initializer.initLogging();
             logger.Warn("Приложение было запущено!");
 
-            TaskScheduler.UnobservedTaskException += (o, ev) => Initializer.OnCriticalError(ev.Exception);
-            AppDomain.CurrentDomain.UnhandledException += (o, ev) => Initializer.OnCriticalError(ev.ExceptionObject as Exception);
+            TaskScheduler.UnobservedTaskException += (o, ev) => Initializer.OnUnhandledError(ev.Exception, Initializer.ErrorType.TaskScheduler);
+            AppDomain.CurrentDomain.UnhandledException += (o, ev) => Initializer.OnUnhandledError(ev.ExceptionObject as Exception, Initializer.ErrorType.AppDomain);
 
             var appDir = AppPath;
             if (appDir == null) throw new ArgumentException("Invalid path to assembly!");
@@ -142,12 +143,25 @@ namespace CloudBackuper
             return scheduler;
         }
 
-        public static void OnCriticalError(Exception ex)
+        public enum ErrorType
         {
-            string message = "Необработанная критическая ошибка! Приложение будет закрыто!";
-            logger.Fatal(message);
-            logger.Fatal(ex.Message);
-            logger.Fatal(ex.ToString());
+            AppDomain,
+            TaskScheduler
+        }
+
+        public static void OnUnhandledError(Exception ex, ErrorType type)
+        {
+            if (ex is AggregateException && 
+                ex.InnerException != null && 
+                ex.InnerException is HttpListenerException netEx)
+            {
+                logger.Debug($"Ошибка! {netEx.Message}");
+                return;
+            }
+            string message = $"Необработанная ошибка в {type}!";
+            logger.Warn(message);
+            logger.Warn(ex.Message);
+            logger.Warn(ex.ToString());
         }
 
         public static void initLogging()

@@ -32,14 +32,12 @@ onMount(initialize);
 
 <main class="container">
 
-	<nav class="navbar navbar-expand-lg navbar-light">
-	<span class="navbar-brand">{settings.appName}</span>
-	<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-		<div class="navbar-nav">
-			{#each menu as item}
-				<a class="nav-item nav-link {isMenuDisabled(item)}" on:click="{() => setMenu(item)}" href={`#${item.name}`}>{item.title}</a>
-			{/each}
-		</div>
+	<nav class="navbar navbar-light">
+	<div class="navbar-brand">{settings.appName}</div>
+	<div id="navbarNavAltMarkup">
+		{#each menu as item}
+			<a class="nav-item nav-link {isMenuDisabled(item)}" on:click="{() => setMenu(item)}" href={`#${item.name}`}>{item.title}</a>
+		{/each}
 	</div>
 	</nav>
 
@@ -62,5 +60,11 @@ onMount(initialize);
 
 	.active {
 		text-decoration: underline;
+	}
+
+	#navbarNavAltMarkup {
+		display: flex;
+		flex-direction: row;
+		/* background: blue; */
 	}
 </style>

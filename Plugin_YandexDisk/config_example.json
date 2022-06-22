@@ -1,0 +1,9 @@
+﻿{
+  "Uploader": {
+    "Type": "Plugin_YandexDisk.YaDiskUploader",
+    "Settings": {
+      "OAuthToken": "Token (Easiest way to get: https://yandex.ru/dev/disk/poligon/)",
+      "UploadDir": "/Path/From/Root"
+    }
+  }
+}

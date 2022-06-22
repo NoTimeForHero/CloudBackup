@@ -48,6 +48,7 @@ namespace CloudBackuper.Web
 
             if (developmentMode) server.WithCors();
 
+            // TODO: Вынести в settings.json путь к /ws-status
             server.WithModule(nameof(WebSocketStatus), new WebSocketStatus(container, "/ws-status"));
 
             server.WithWebApi("/api", m => m.WithController(() => new MainController(container)))
@@ -100,11 +101,7 @@ namespace CloudBackuper.Web
             public object Index()
             {
                 var states = (Dictionary<JobKey, UploadJobState>)scheduler.Context["states"];
-                return states.Select(pair => new
-                {
-                    Key = pair.Key,
-                    State = pair.Value
-                });
+                return states.ToDictionary(x => x.Key.Name, x => x.Value);
             }
 
             [Route(HttpVerbs.Post, "/jobs/start/{name}")]

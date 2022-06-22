@@ -110,32 +110,33 @@ namespace TestFrontend
             logger.Info("Job has been started!");
             var jobState = getState(context);
 
-            jobState.inProgress = true;
-            jobState.status = "Построение списка файлов";
+            jobState.Update("Построение списка файлов");
             await Task.Delay(5000);
 
             jobState.isBytes = false;
-            jobState.current = 0;
-            jobState.total = rnd.Next(50, 250);
-            for (int i = 0; i < jobState.total; i++)
+            var total = rnd.Next(50, 250);
+            jobState.Progress(0, total);
+            for (int i = 0; i < total; i++)
             {
-                jobState.current = i;
-                jobState.status = $"Архивация файла Test{i}.dat";
+                jobState.Update($"Архивация файла Test{i}.dat", false);
+                jobState.Progress(i, total);
                 await Task.Delay(50);
             }
 
-            jobState.status = "Отправка архива на сайт";
 
+            jobState.Update("Отправка архива на сайт");
             jobState.isBytes = true;
-            jobState.current = 0;
-            jobState.total = rnd.Next(15, 60) * 1024 * 1024;
+            total = rnd.Next(15, 60) * 1024 * 1024;
+            var current = 0;
+            jobState.Progress(current, total);
             while (jobState.current < jobState.total)
             {
-                jobState.current += rnd.Next(16 * 1024, 256 * 1024);
+                current += rnd.Next(16 * 1024, 256 * 1024);
+                jobState.Progress(current, total);
                 await Task.Delay(200);
             }
 
-            jobState.done("Test...");
+            jobState.Done("Test...");
         }
     }
 }

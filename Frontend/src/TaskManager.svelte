@@ -13,8 +13,8 @@
 	$: calcPercent = (state) => Math.floor(state.current / state.total * 100);
 	$: isBytes = (state, key) => !state.isBytes ? state[key] : bytes(state[key]);
 
-	const btnStart = async(job) => {
-		const jobName = encodeURIComponent(job.Key.Name);
+	const btnStart = async(jobName) => {
+		jobName = encodeURIComponent(jobName);
 		const res = await fetch(settings.apiUrl + '/jobs/start/' + jobName, {method: 'POST'});
 		document.location.reload();
 	}
@@ -29,13 +29,38 @@
 		}
 	}
 
+	let socketClient = undefined;
+
+	function makeSocketClient() {
+		const rawUrl = new URL(settings.apiUrl);
+		const socket = new WebSocket(`ws://${rawUrl.host}/ws-status`);
+		socket.onmessage = (ev) => {
+			const message = JSON.parse(ev.data);
+			if (!message.Type) {
+				console.log('Unknown message!', message);
+				return;
+			}
+			const { Type, States, Name } = message;
+			jobs = {...jobs, ...States};
+		}
+		socket.onerror = (ev) => {
+			console.error('WebSocket Error!', ev);
+			alert = { class: 'danger', message: 'Ошибка WebSocket!' }			
+		}
+		const onClose = () => {
+			console.log('WebSocket closed...');
+			socket.close();
+		}
+		return { close: onClose };
+	}
+
 	onMount(()=> {
 		updateJobs();
-		timerUpdate = setInterval(updateJobs, 2000);
+		socketClient = makeSocketClient();
 	});
 
 	onDestroy(()=> {
-		clearInterval(timerUpdate);
+		socketClient.close();
 	});
 </script>
 
@@ -53,27 +78,27 @@
 	</div>
 	{/if}
 
-	{#each jobs as job}
+	{#each Object.entries(jobs) as [jobName,job] }
 		<div class="col-sm-5 m-2">
 			<div class="card">
 				<div class="card-header">
-					Задача: <strong>{job.Key.Name}</strong>
+					Задача: <strong>{jobName}</strong>
 				</div>
 				<div class="card-body">
-					{#if !job.State.inProgress}
-					<button class="btn btn-success" on:click={() => btnStart(job)}>
-						<i class="fa fa-play" aria-hidden="true"></i>&nbsp;Запустить задачу							
-					</button>
+					{#if !job.inProgress}
+						<button class="btn btn-success" on:click={() => btnStart(jobName)}>
+							<i class="fa fa-play" aria-hidden="true"></i>&nbsp;Запустить задачу							
+						</button>
 					{:else}
 					<div class="center">
-						<h4 style="text-align: center">{job.State.status}</h4>
+						<h4 style="text-align: center">{job.status}</h4>
 						<div class="progress">
 							<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-								aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: {calcPercent(job.State)}%"></div>
+								aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: {calcPercent(job)}%"></div>
 						</div>		
-						{#if job.State.total > 0}
+						{#if job.total > 0}
 						<div class="mt-1">
-							{isBytes(job.State, 'current')} / {isBytes(job.State, 'total')}
+							{isBytes(job, 'current')} / {isBytes(job, 'total')}
 						</div>						
 						{/if}
 					</div>						

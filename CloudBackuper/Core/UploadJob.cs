@@ -31,7 +31,7 @@ namespace CloudBackuper
             {
                 var jobState = getState(context);
                 // TODO: Reset job status?
-                jobState.done("Ошибка!");
+                jobState.Done("Ошибка!");
                 logger.Error($"Задача '{context.JobDetail.Key.Name}' кинула ошибку {exception.GetType().FullName}!");
                 logger.Error("Сообщение: " + exception.Message);
                 logger.Error(exception.StackTrace);
@@ -60,55 +60,30 @@ namespace CloudBackuper
             logger.Debug("Тип масок: " + (cfgJob.Masks.MasksExclude ? "Whitelist" : "Blacklist"));
 
             var jobState = getState(context);
-            jobState.inProgress = true;
 
-            jobState.status = "Построение списка файлов";
+            jobState.Update("Построение списка файлов");
             var files = new List<string>();
             var nodes = FileUtils.GetFilesInDirectory(cfgJob.Path, cfgJob.Masks, flattenFiles: files);
 
-            jobState.status = "Подключение к хранилищу";
+            jobState.Update("Подключение к хранилищу");
             await uploader.Connect();
 
             using (var zip = new ZipTools(cfgJob.Path, files, cfgJob.Password))
             {
-                var zipFilename = zip.CreateZip((total, index, name) =>
+                var zipFilename = zip.CreateZip((total, current, name) =>
                 {
-                    jobState.status = $"Архивация файла: {name}";
-                    jobState.current = index;
-                    jobState.total = total;
+                    jobState.Update($"Архивация файла: {name}", false);
+                    jobState.Progress(current, total);
                 });
-
+                jobState.Update($"Отправка архива {filename}");
                 jobState.isBytes = true;
-                await uploader.UploadFile(zipFilename, filename, (progress) =>
-                {
-                    jobState.status = $"Отправка архива {filename}";
-                    jobState.current = progress.current;
-                    jobState.total = progress.total;
-                });
+                await uploader.UploadFile(zipFilename, filename,
+                    (x) => jobState.Progress(x.current, x.total));
             }
 
             await uploader.Disconnect();
-            jobState.done("Задача успешно завершена!");
+            jobState.Done("Задача успешно завершена!");
             logger.Info($"Задача №{jobIndex} завершена: {cfgJob.Name}");
-        }
-    }
-
-    public class UploadJobState
-    {
-        public string status { get; set; }
-        public bool inProgress { get; set; }
-        public bool isBytes { get; set; }
-
-        public long current { get; set; }
-        public long total { get; set; }
-
-        public void done(string status)
-        {
-            this.status = status;
-            inProgress = false;
-            isBytes = false;
-            current = 0;
-            total = 0;
         }
     }
 }
