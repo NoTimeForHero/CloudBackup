@@ -35,7 +35,8 @@ namespace Plugin_YandexDisk
 
             using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
-                var uploadPath = settings.UploadDir + "/" + file.Path;
+                var uploadPath = settings.UploadDir;
+                if (!string.IsNullOrEmpty(file.Path)) uploadPath += "/" + file.Path;
                 var uploadLink = await webClient.GetUploadLink(uploadPath + "/" + file.SafeName, true);
                 await webClient.UploadFile(uploadLink, fs, callback);
                 if (!file.IsNameSafe) await webClient.RenameFile(uploadPath, file.SafeName, file.Name);

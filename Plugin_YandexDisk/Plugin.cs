@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CloudBackuper.Plugins;
 
-namespace Plugin_AmazonS3
+namespace Plugin_YandexDisk
 {
     public class Plugin : IPlugin
     {
