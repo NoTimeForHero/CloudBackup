@@ -10,6 +10,9 @@ namespace CloudBackuper.Utils
 {
     public class Information
     {
+        public const string Filename_Config = "config.json";
+        public const string Filename_Script = "scripts.js";
+
         public static readonly string Title;
         public static readonly string Description;
         // private string AppPath => Path.GetDirectoryName(Assembly.GetAssembly(GetType()).Location);
@@ -22,7 +25,5 @@ namespace CloudBackuper.Utils
             AppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             if (AppPath == null) throw new ArgumentException("Invalid path to assembly!");
         }
-
-
     }
 }

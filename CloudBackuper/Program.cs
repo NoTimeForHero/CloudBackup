@@ -17,18 +17,17 @@ using Unity;
 
 namespace CloudBackuper
 {
-    public sealed class Program : IDisposable, IShutdown
+    public sealed class Program : IDisposable
     {
         private static bool DEBUG_MODE;
+
         private readonly AutoResetEvent waitShutdown = new AutoResetEvent(false);
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly IUnityContainer container = new UnityContainer();
         private readonly Config config;
 
+        public readonly bool IsService;
         private WebServer webServer;
-
-        public const string Filename_Config = "config.json";
-        public const string Filename_Script = "scripts.js";
 
         /// <summary>
         /// Главная точка входа для приложения.
@@ -36,19 +35,18 @@ namespace CloudBackuper
         [STAThread]
         static async Task Main()
         {
-            using (var program = new Program())
+            using (var program = new Program(false))
             {
 #if DEBUG
                     DEBUG_MODE = true;
 #endif
-                await program.Run(program, url => Process.Start(url));
+                await program.Run(url => Process.Start(url));
             }
         }
 
-        public void RunVoid(IShutdown shutdown, Action<string> runAfter = null) => Run(shutdown, runAfter);
-
-        public Program()
+        public Program(bool isService)
         {
+            IsService = isService;
             Logging.initLogging();
             logger.Warn("Приложение было запущено!");
 
@@ -56,20 +54,20 @@ namespace CloudBackuper
             AppDomain.CurrentDomain.UnhandledException += (o, ev) => Logging.OnUnhandledError(ev.ExceptionObject as Exception, Logging.ErrorType.AppDomain);
 
             logger.Info($"Каталог откуда запущено приложение: {Information.AppPath}");
-            string json = File.ReadAllText(Path.Combine(Information.AppPath, Filename_Config));
+            string json = File.ReadAllText(Path.Combine(Information.AppPath, Information.Filename_Config));
             config = JsonConvert.DeserializeObject<Config>(json);
             Logging.applyLoggingSettings(config.Logging);
         }
 
-        public async Task Run(IShutdown shutdown, Action<string> runAfter = null)
+        public async Task Run(Action<string> runAfter = null)
         {
-            var scheduler = await Initializer.GetScheduler(container, config);
-
+            container.RegisterInstance(this);
             container.RegisterInstance(config);
-            container.RegisterInstance(scheduler);
-            if (shutdown != null) container.RegisterInstance(shutdown);
 
-            var jsEngine = new JSEngine(Path.Combine(Information.AppPath, Filename_Script));
+            var scheduler = await Initializer.GetScheduler(container, config);
+            container.RegisterInstance(scheduler);
+
+            var jsEngine = new JSEngine(Path.Combine(Information.AppPath, Information.Filename_Script));
             container.RegisterInstance(jsEngine);
 
             var controller = await new JobController(container).Constructor(config);
@@ -80,15 +78,9 @@ namespace CloudBackuper
             var staticFilesPath = Path.Combine(Information.AppPath, "WebApp");
             logger.Debug($"Путь до папки со статикой: {staticFilesPath}");
             webServer = new WebServer(container, staticFilesPath, DEBUG_MODE);
-
             runAfter?.Invoke(config.HostingURI);
 
             waitShutdown.WaitOne();
-        }
-
-        public void Restart()
-        {
-
         }
 
         public void Dispose()
@@ -103,13 +95,9 @@ namespace CloudBackuper
 
         public void Shutdown()
         {
+            if (IsService) return;
             logger.Warn("Получен сигнал к завершению приложения!");
             waitShutdown.Set();
         }
-    }
-
-    public interface IShutdown
-    {
-        void Shutdown();
     }
 }

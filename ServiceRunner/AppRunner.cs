@@ -16,7 +16,7 @@ namespace ServiceRunner
 
         protected override void OnStart(string[] args)
         {
-            program = new CloudBackuper.Program();
+            program = new CloudBackuper.Program(true);
             Task.Run(async() => await program.Run(null));
         }
 

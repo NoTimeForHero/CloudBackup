@@ -19,13 +19,13 @@ namespace CloudBackuper.Web
     public class WebServer : IDisposable
     {
         protected ILogger logger = LogManager.GetCurrentClassLogger();
-        protected IShutdown shutdown;
+        protected Program program;
         protected EmbedServer server;
 
         public WebServer(IUnityContainer container, string pathStaticFiles=null, bool developmentMode=false)
         {
             var config = container.Resolve<Config>();
-            shutdown = container.IsRegistered<IShutdown>() ? container.Resolve<IShutdown>() : null;
+            program = container.Resolve<Program>();
 
             var options = new WebServerOptions()
                 .WithMode(HttpListenerMode.Microsoft)
@@ -35,7 +35,7 @@ namespace CloudBackuper.Web
             {
                 appName = getApplicationName(),
                 apiUrl = $"{config.HostingURI}/api",
-                isService = shutdown == null
+                isService = program.IsService
             };
 
             server = new EmbedServer(options);
@@ -76,7 +76,7 @@ namespace CloudBackuper.Web
         protected class MainController : WebApiController
         {
             protected MemoryTarget memoryTarget;
-            protected IShutdown shutdown;
+            protected Program program;
             protected IScheduler scheduler;
             private PluginManager pm;
 
@@ -84,7 +84,7 @@ namespace CloudBackuper.Web
             {
                 memoryTarget = LogManager.Configuration.AllTargets.OfType<MemoryTarget>().FirstOrDefault();
                 scheduler = container.Resolve<IScheduler>();
-                shutdown = container.IsRegistered<IShutdown>() ? container.Resolve<IShutdown>() : null;
+                program = container.Resolve<Program>();
                 pm = container.Resolve<PluginManager>();
             }
 
@@ -118,7 +118,7 @@ namespace CloudBackuper.Web
             [Route(HttpVerbs.Delete, "/shutdown")]
             public object Shutdown()
             {
-                if (shutdown == null)
+                if (program.IsService)
                 {
                     Response.StatusCode = 400;
                     return new {Error = "Службу невозможно остановить через веб-интефрейс!"};
@@ -127,7 +127,7 @@ namespace CloudBackuper.Web
                 Task.Run(async () =>
                 {
                     await Task.Delay(500);
-                    shutdown.Shutdown();
+                    program.Shutdown();
                 });
                 return new {Message = "Приложение будет остановлено через несколько секунд!"};
             }

@@ -20,7 +20,7 @@ namespace Tests
         public async Task Startup()
         {
             container = new UnityContainer();
-            scheduler = await Initializer.GetScheduler(container, new Config(), false);
+            scheduler = await Initializer.GetScheduler(container, new Config());
         }
 
         [TestMethod]
