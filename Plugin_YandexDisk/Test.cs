@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using CloudBackuper.Plugins;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 
 namespace Plugin_YandexDisk
 {
@@ -13,7 +16,12 @@ namespace Plugin_YandexDisk
     {
         public static async Task Main()
         {
+            var config = new LoggingConfiguration();
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, new ConsoleTarget("logconsole"));
+            LogManager.Configuration = config;
+
             var token = Environment.GetEnvironmentVariable("YANDEX_DISK_TOKEN", EnvironmentVariableTarget.User);
+            token = "lolasdiw";
             var uploadDir = "/test1";
             dynamic settings = JsonConvert.SerializeObject(new Settings { OAuthToken = token, UploadDir = uploadDir });
             settings = JsonConvert.DeserializeObject<JObject>(settings);
@@ -23,7 +31,7 @@ namespace Plugin_YandexDisk
             await uploader.Connect();
 
             Console.WriteLine("Begin uploading...");
-            await uploader.UploadFile(@"C:\Test\Example.zip", "folder1/Example.zip", OnProgress);
+            await uploader.UploadFile(@"C:\Test\Small.zip", "folder1/Example.zip", OnProgress);
             Console.WriteLine("End uploading...");
 
             Console.ReadLine();

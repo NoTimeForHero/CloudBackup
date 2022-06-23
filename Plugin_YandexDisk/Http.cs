@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using CloudBackuper.Plugins;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NLog;
 
 namespace Plugin_YandexDisk
 {
@@ -17,6 +18,7 @@ namespace Plugin_YandexDisk
     internal class WebClient : IDisposable
     {
         protected const string API_URL = "https://cloud-api.yandex.net/v1/disk";
+        protected Logger logger = LogManager.GetCurrentClassLogger();
         protected HttpClient client;
 
         public WebClient(string token)
@@ -32,13 +34,30 @@ namespace Plugin_YandexDisk
             client.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
         }
 
+        private void EnsureSuccess(HttpResponseMessage response, string body)
+        {
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException ex)
+            {
+                logger.Warn($"Ошибка: {ex.Message}");
+                var headers = response.Content.Headers.Select(x => $"{x.Key}: {x.Value.Join(", ")}").Join("\n");
+                logger.Warn($"Заголовки:\n{headers}");
+                logger.Warn($"Содержимое ответа:\n{body}");
+                throw;
+            }
+        }
+
         public async Task<string> GetUploadLink(string path, bool overwrite = false)
         {
             var fullPath = API_URL + $"/resources/upload?overwrite={overwrite}&path=" + WebUtility.UrlEncode(path);
             var requestUri = new Uri(fullPath);
+            logger.Info($"HTTP запрос ({nameof(GetUploadLink)}):\n{fullPath}");
             var response = await client.GetAsync(requestUri);
-            response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
+            EnsureSuccess(response, responseString);
             var json = JsonConvert.DeserializeObject<JObject>(responseString);
             var href = json["href"]?.ToObject<string>();
             if (href == null) throw new InvalidOperationException("HREF is null!");
@@ -53,9 +72,10 @@ namespace Plugin_YandexDisk
             route += "&path=" + WebUtility.UrlEncode(path + "/" + output);
             route += "&force_async=true";
             route += "&overwrite=true";
+            logger.Info($"HTTP запрос ({nameof(RenameFile)}):\n{route}");
             var requestUri = new Uri(route);
             var response = await client.PostAsync(requestUri, new StringContent(string.Empty));
-            response.EnsureSuccessStatusCode();
+            EnsureSuccess(response, await response.Content.ReadAsStringAsync());
         }
 
         /// <summary>
@@ -68,8 +88,9 @@ namespace Plugin_YandexDisk
             request.RequestUri = new Uri(href);
             request.Method = HttpMethod.Put;
             request.Content = content;
+            logger.Info($"HTTP запрос ({nameof(UploadFile)}):\n{href}");
             var response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            EnsureSuccess(response, await response.Content.ReadAsStringAsync());
         }
 
         public void Dispose()

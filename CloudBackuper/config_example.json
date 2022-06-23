@@ -53,10 +53,16 @@
       "Path": "C:\\Users\\user\\Desktop",
       "Password": "symjPph60X7wMpmPyHfRzbyp0asdke6q",
       "Masks": {
+        "MasksExclude": "true",
+        "DirectoriesExcluded": [
+          "bin",
+          "obj",
+          "DEBUG"
+        ],
         "Masks": [
-          ".txt",
-          ".docx",
-          ".xlsx"
+          ".c",
+          ".exe",
+          ".dll"
         ]
       }
     }
