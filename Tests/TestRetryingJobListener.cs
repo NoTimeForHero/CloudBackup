@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CloudBackuper;
+using CloudBackuper.Core.Quartz;
 using CloudBackuper.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Quartz;

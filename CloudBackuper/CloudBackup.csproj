@@ -90,20 +90,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
-    <Compile Include="Core\UploadJobState.cs" />
+    <Compile Include="Core\Quartz\Initializer.cs" />
+    <Compile Include="Core\Quartz\UploadJobState.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\FakeUploader.cs" />
     <Compile Include="Utils\FileUtils.cs" />
-    <Compile Include="Core\JobController.cs" />
+    <Compile Include="Core\Quartz\JobController.cs" />
     <Compile Include="Core\JSEngine.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Core\UploadJob.cs" />
+    <Compile Include="Core\Quartz\UploadJob.cs" />
     <Compile Include="Core\PluginManager.cs" />
-    <Compile Include="Utils\JobUtils.cs" />
+    <Compile Include="Utils\Information.cs" />
+    <Compile Include="Core\Quartz\Handlers.cs" />
     <Compile Include="Core\WebServer.cs" />
     <Compile Include="Core\WebSocketStatus.cs" />
     <Compile Include="Core\ZipTools.cs" />
+    <Compile Include="Utils\Logging.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

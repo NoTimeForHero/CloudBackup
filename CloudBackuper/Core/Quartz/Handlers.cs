@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using NLog;
 using Quartz;
 
-namespace CloudBackuper.Utils
+namespace CloudBackuper.Core.Quartz
 {
     public class JobAfterHandler : IJobListener
     {

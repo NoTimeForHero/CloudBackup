@@ -5,7 +5,7 @@ using NLog;
 using Quartz;
 using Unity;
 
-namespace CloudBackuper
+namespace CloudBackuper.Core.Quartz
 {
     class JobController
     {

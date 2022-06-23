@@ -14,8 +14,8 @@ namespace ServiceRunner
 
             processInstaller.Account = ServiceAccount.LocalSystem;
             serviceInstaller.StartType = ServiceStartMode.Automatic;
-            serviceInstaller.ServiceName = CloudBackuper.Program.Title;
-            serviceInstaller.Description = CloudBackuper.Program.Description;
+            serviceInstaller.ServiceName = CloudBackuper.Utils.Information.Title;
+            serviceInstaller.Description = CloudBackuper.Utils.Information.Description;
 
             Installers.Add(processInstaller);
             Installers.Add(serviceInstaller);
