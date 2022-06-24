@@ -1,10 +1,11 @@
 <script>
 	export let settings;
+	import { useSockets } from './socket.js';
 	import { onMount, onDestroy } from 'svelte';
 	import bytes from 'bytes';
 
 	let timerUpdate = null;
-	let jobs = [];
+	let jobs = {};
 	let alert = {
 		class: 'info',
 		message: 'Загрузка данных с сервера...'
@@ -54,14 +55,20 @@
 		return { close: onClose };
 	}
 
-	onMount(()=> {
+	onMount(() => {
 		updateJobs();
-		socketClient = makeSocketClient();
-	});
+	})
 
-	onDestroy(()=> {
-		socketClient.close();
-	});
+	useSockets('error', (ev) => alert = { class: 'danger', message: 'Ошибка WebSocket!' });
+	useSockets('message', (raw) => {
+		const message = JSON.parse(raw);
+		if (!message.Type) {
+			console.log('Unknown message!', message);
+			return;
+		}
+		const { Type, States, Name } = message;
+		jobs = {...jobs, ...States};
+	})
 </script>
 
 <style>
