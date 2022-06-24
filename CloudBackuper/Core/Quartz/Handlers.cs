@@ -17,12 +17,11 @@ namespace CloudBackuper.Core.Quartz
 
         public Task JobToBeExecuted(IJobExecutionContext context, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public async Task JobWasExecuted(IJobExecutionContext context, JobExecutionException jobException, CancellationToken cancellationToken = default)
+        public Task JobWasExecuted(IJobExecutionContext context, JobExecutionException jobException, CancellationToken cancellationToken = default)
         {
-            var scheduler = context.Scheduler;
-            var jobController = scheduler.Context["jobController"] as JobController;
-            var jobsAfter = jobController?.getJobsAfter(context.JobDetail.Key);
-            if (jobsAfter != null) await Task.WhenAll(jobsAfter.Select(job => scheduler.TriggerJob(job, cancellationToken)));
+            var jobController = context.Scheduler.Context["jobController"] as JobController;
+            if (jobController == null) throw new NullReferenceException($"{nameof(JobController)} is null!");
+            return jobController.runJobsAfter(context, cancellationToken);
         }
     }
 
@@ -64,8 +63,8 @@ namespace CloudBackuper.Core.Quartz
                 data[retryKey] = 0;
                 var scheduler = context.Scheduler;
                 var jobController = scheduler.Context["jobController"] as JobController;
-                var jobsAfter = jobController?.getJobsAfter(context.JobDetail.Key);
-                if (jobsAfter != null) await Task.WhenAll(jobsAfter.Select(job => scheduler.TriggerJob(job, cancellationToken)));
+                if (jobController == null) throw new NullReferenceException($"{nameof(JobController)} is null!");
+                await jobController.runJobsAfter(context, cancellationToken);
                 return;
             }
 

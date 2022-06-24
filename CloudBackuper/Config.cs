@@ -65,13 +65,12 @@ namespace CloudBackuper
         public string Password { get; set; }
         public Config_Masks Masks { get; set; }
 
-        public Exception Validate()
+        public void Validate()
         {
             bool hasCron = !string.IsNullOrEmpty(CronSchedule);
             bool hasAfter = !string.IsNullOrEmpty(RunAfter);
 
-            if (!hasCron && !hasAfter) return new ArgumentException("Job must have CronSchedule or RunAfter!");
-            return null;
+            if (!hasCron && !hasAfter) throw new ArgumentException("Job must have CronSchedule or RunAfter!");
         }
 
         public override string ToString()

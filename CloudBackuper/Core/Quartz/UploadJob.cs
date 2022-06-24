@@ -13,7 +13,7 @@ namespace CloudBackuper
     [PersistJobDataAfterExecution]
     class UploadJob : IJob
     {
-        protected static readonly Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        protected static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         protected UploadJobState getState(IJobExecutionContext context)
         {

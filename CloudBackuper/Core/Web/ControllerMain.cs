@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CloudBackuper.Core.Quartz;
 using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
@@ -20,13 +21,13 @@ namespace CloudBackuper.Web
     {
         protected MemoryTarget memoryTarget;
         protected Program program;
-        protected IScheduler scheduler;
+        protected JobController controller;
         private PluginManager pm;
 
         public ControllerMain(IUnityContainer container)
         {
             memoryTarget = LogManager.Configuration.AllTargets.OfType<MemoryTarget>().FirstOrDefault();
-            scheduler = container.Resolve<IScheduler>();
+            controller = container.Resolve<JobController>();
             program = Program.Instance;
             pm = container.Resolve<PluginManager>();
         }
@@ -43,19 +44,15 @@ namespace CloudBackuper.Web
         [Route(HttpVerbs.Any, "/jobs")]
         public object Index()
         {
-            var states = (Dictionary<JobKey, UploadJobState>)scheduler.Context["states"];
+            var states = (Dictionary<JobKey, UploadJobState>)controller.Scheduler.Context["states"];
             return states.ToDictionary(x => x.Key.Name, x => x.Value);
         }
 
-        [Route(HttpVerbs.Post, "/jobs/start/{name}")]
-        public async Task<object> StartJob(string name)
+        [Route(HttpVerbs.Any, "/jobs/start/{name}")]
+        public Task<object> StartJob(string name)
         {
-            var tasksDetail = (await scheduler.GetJobKeys(GroupMatcher<JobKey>.AnyGroup()))
-                .Select(key => scheduler.GetJobDetail(key));
-            var details = await Task.WhenAll(tasksDetail);
-            var job = details.FirstOrDefault(xJob => xJob.Key.Name == name);
-            if (job != null) await scheduler.TriggerJob(job.Key);
-            return job;
+            var runAfter = Request.QueryString.GetValues("runAfter") != null;
+            return controller.StartJob(name, !runAfter);
         }
 
         [Route(HttpVerbs.Get, "/reload")]

@@ -78,8 +78,8 @@ namespace CloudBackuper
             Logging.applyLoggingSettings(config.Logging);
             container.RegisterInstance(config);
 
-            var scheduler = await Initializer.GetScheduler(container, config);
-            container.RegisterInstance(scheduler);
+            //var scheduler = await Initializer.GetScheduler(container, config);
+            //container.RegisterInstance(scheduler);
 
             var jsEngine = new JSEngine(Path.Combine(Information.AppPath, Information.Filename_Script));
             container.RegisterInstance(jsEngine);

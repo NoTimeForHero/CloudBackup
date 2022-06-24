@@ -90,7 +90,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
-    <Compile Include="Core\Quartz\Initializer.cs" />
     <Compile Include="Core\Quartz\UploadJobState.cs" />
     <Compile Include="Core\Web\ControllerMain.cs" />
     <Compile Include="Utils\Extensions.cs" />
