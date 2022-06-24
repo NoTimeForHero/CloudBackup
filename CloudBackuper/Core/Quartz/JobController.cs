@@ -14,9 +14,9 @@ namespace CloudBackuper.Core.Quartz
 {
     public class JobController : IDisposable
     {
-        protected static Dictionary<JobKey, IList<JobKey>> runAfter = new Dictionary<JobKey, IList<JobKey>>();
-        protected static Dictionary<JobKey, Config_Job> configs = new Dictionary<JobKey, Config_Job>();
-        protected static Dictionary<JobKey, ITrigger> triggers = new Dictionary<JobKey, ITrigger>();
+        protected Dictionary<JobKey, IList<JobKey>> runAfter = new Dictionary<JobKey, IList<JobKey>>();
+        protected Dictionary<JobKey, Config_Job> configs = new Dictionary<JobKey, Config_Job>();
+        protected Dictionary<JobKey, ITrigger> triggers = new Dictionary<JobKey, ITrigger>();
         protected static Logger logger = LogManager.GetCurrentClassLogger();
         protected IUnityContainer container;
         protected IScheduler scheduler;

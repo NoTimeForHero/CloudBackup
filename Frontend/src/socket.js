@@ -43,7 +43,6 @@ export class SocketClient {
             if (this.isDebug) console.log('SocketClient', 'error', ev.data);            
             this.events.error.forEach((handler) => handler(ev));            
             this.events.any.forEach((handler) => handler(this.isActive));
-            this.reconnectTimer = setTimeout(this.makeSocketClient.bind(this), this.reconnectInterval);            
 		}
         this.socket.onclose = (ev) => {
             this.isActive = false;

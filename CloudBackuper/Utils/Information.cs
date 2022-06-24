@@ -10,7 +10,7 @@ namespace CloudBackuper.Utils
 {
     public class Information
     {
-        public const string Filename_Config = "config.json";
+        public const string Filename_Config = "config.yml";
         public const string Filename_Script = "scripts.js";
 
         public static readonly string Title;

@@ -16,6 +16,7 @@ using NLog.Config;
 using NLog.Targets;
 using Quartz;
 using Unity;
+using YamlDotNet.Serialization;
 
 namespace CloudBackuper
 {
@@ -73,8 +74,8 @@ namespace CloudBackuper
             await Task.Delay(500);
 
             if (log) logger.Warn("Запрошена перезагрузка конфигурации!");
-            string json = File.ReadAllText(Path.Combine(Information.AppPath, Information.Filename_Config));
-            var config = JsonConvert.DeserializeObject<Config>(json);
+            var config = YamlTools.Deserialize<Config>(Information.AppPath, Information.Filename_Config, "config.debug.json");
+
             Logging.applyLoggingSettings(config.Logging);
             container.RegisterInstance(config);
 

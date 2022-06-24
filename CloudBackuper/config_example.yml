@@ -1,0 +1,52 @@
+---
+ID: Example_Config
+HostingURI: http://localhost:9000
+Uploader:
+  Type: CloudBackuper.Plugins.FakeUploader
+  Settings:
+    Hello: World!
+    Number: 42
+Logging:
+  Level: INFO
+  WebService:
+    name: Remote Logging
+    url: http://localhost:3000/example
+    protocol: JsonPost
+    parameters:
+      api_Key: e33928aa0c8a3244b8a7013f208e1d24a11dc437
+      data: "${longdate}"
+      level: "${level:uppercase=true}"
+      logger: "${logger}"
+      message: "${message}"
+  RetryingWrapper:
+    retryCount: 5
+    retryDelayMilliseconds: 2000
+JobRetrying:
+  MaxRetries: 3
+  WaitSeconds: 600
+Jobs:
+- Id: system_files
+  Name: System files
+  Description:
+  CronSchedule: 0 0 18 * * ?
+  Path: C:\Windows\System32
+  Masks:
+    Masks:
+    - ".ini"
+    - ".dat"
+- Id: user_files
+  Name: User files
+  Description:
+  RunAfter: System files
+  Path: C:\Users\user\Desktop
+  Password: symjPph60X7wMpmPyHfRzbyp0asdke6q
+  Masks:
+    MasksExclude: 'true'
+    DirectoriesExcluded:
+    - bin
+    - obj
+    - DEBUG
+    Masks:
+    - ".c"
+    - ".exe"
+    - ".dll"
