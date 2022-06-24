@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using EmbedIO;
 using Quartz;
@@ -18,14 +19,16 @@ namespace CloudBackuper.Web
 {
     public class WebServer : IDisposable
     {
+        protected CancellationTokenSource tokenSource;
         protected ILogger logger = LogManager.GetCurrentClassLogger();
         protected Program program;
         protected EmbedServer server;
 
         public WebServer(IUnityContainer container, string pathStaticFiles=null, bool developmentMode=false)
         {
+            logger.Debug($"Путь до папки со статикой: {pathStaticFiles}");
             var config = container.Resolve<Config>();
-            program = container.Resolve<Program>();
+            program = Program.Instance;
 
             var options = new WebServerOptions()
                 .WithMode(HttpListenerMode.Microsoft)
@@ -57,11 +60,13 @@ namespace CloudBackuper.Web
             if (pathStaticFiles != null) server.WithStaticFolder("/", pathStaticFiles, true);
 
             server.StateChanged += (s, e) => logger.Debug($"New State: {e.NewState}");
-            server.RunAsync();
+            tokenSource = new CancellationTokenSource();
+            server.RunAsync(tokenSource.Token);
         }
 
         public void Dispose()
         {
+            tokenSource.Cancel();
             server.Dispose();
         }
 
@@ -84,7 +89,7 @@ namespace CloudBackuper.Web
             {
                 memoryTarget = LogManager.Configuration.AllTargets.OfType<MemoryTarget>().FirstOrDefault();
                 scheduler = container.Resolve<IScheduler>();
-                program = container.Resolve<Program>();
+                program = Program.Instance;
                 pm = container.Resolve<PluginManager>();
             }
 
@@ -115,21 +120,27 @@ namespace CloudBackuper.Web
                 return job;
             }
 
+            [Route(HttpVerbs.Get, "/reload")]
+            public async Task Reload()
+            {
+                await HttpContext.SendDataAsync(new { Message = "Конфиг приложения будет перезагружен!" });
+                await Task.Delay(500);
+                await program.Reload(true);
+            }
+
             [Route(HttpVerbs.Delete, "/shutdown")]
-            public object Shutdown()
+            public async Task Shutdown()
             {
                 if (program.IsService)
                 {
                     Response.StatusCode = 400;
-                    return new {Error = "Службу невозможно остановить через веб-интефрейс!"};
+                    await HttpContext.SendDataAsync(new { Error = "Службу невозможно остановить через веб-интефрейс!"});
+                    return;
                 }
 
-                Task.Run(async () =>
-                {
-                    await Task.Delay(500);
-                    program.Shutdown();
-                });
-                return new {Message = "Приложение будет остановлено через несколько секунд!"};
+                await HttpContext.SendDataAsync(new { Message = "Приложение будет остановлено через несколько секунд!"});
+                await Task.Delay(500);
+                program.Shutdown();
             }
 
             // На будущее, если забуду как десериализировать объекты из JSON

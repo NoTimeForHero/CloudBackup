@@ -1,31 +1,53 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Threading.Tasks;
 using NLog;
 using Quartz;
+using Quartz.Impl;
 using Unity;
 
 namespace CloudBackuper.Core.Quartz
 {
-    class JobController
+    class JobController : IDisposable
     {
         protected static Dictionary<JobKey, IList<JobKey>> runAfter = new Dictionary<JobKey, IList<JobKey>>();
         protected static Logger logger = LogManager.GetCurrentClassLogger();
         protected IUnityContainer container;
         protected IScheduler scheduler;
 
+        public void Dispose()
+        {
+            scheduler.Clear();
+            container?.Dispose();
+        }
+
         public JobController(IUnityContainer container)
         {
             this.container = container;
-            scheduler = container.Resolve<IScheduler>();
-            if (scheduler == null) throw new NullReferenceException("IScheduler is null!");
-            scheduler.Context["jobController"] = this;
         }
 
         public IList<JobKey> getJobsAfter(JobKey current) => runAfter.ContainsKey(current) ? runAfter[current] : null;
 
         public async Task<JobController> Constructor(Config config)
         {
+            NameValueCollection props = new NameValueCollection { { "quartz.serializer.type", "binary" } };
+            StdSchedulerFactory factory = new StdSchedulerFactory(props);
+            scheduler = await factory.GetScheduler();
+            // TODO: Сделать получение зависимостей только из этого класса
+            container.RegisterInstance(scheduler);
+            await scheduler.Start();
+            scheduler.Context["states"] = new Dictionary<JobKey, UploadJobState>();
+            scheduler.Context["container"] = container;
+            scheduler.Context["config"] = config;
+            scheduler.Context["jobController"] = this;
+            scheduler.ListenerManager.AddJobListener(new JobAfterHandler());
+            if (config.JobRetrying != null)
+            {
+                var listener = new JobFailureHandler(config.JobRetrying.MaxRetries, config.JobRetrying.WaitSeconds * 1000);
+                scheduler.ListenerManager.AddJobListener(listener);
+            }
+
             var tasks = new List<Task>();
             int index = 0;
 
@@ -78,6 +100,5 @@ namespace CloudBackuper.Core.Quartz
             await Task.WhenAll(tasks);
             return this;
         }
-
     }
 }

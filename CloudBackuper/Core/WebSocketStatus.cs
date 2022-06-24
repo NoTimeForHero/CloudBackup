@@ -43,10 +43,17 @@ namespace CloudBackuper
 
             Task.Factory.StartNew(async () =>
             {
-                while (!tokenSource.IsCancellationRequested)
+                try
                 {
-                    await EventLoop();
-                    await Task.Delay(updateInterval, tokenSource.Token);
+                    while (!tokenSource.IsCancellationRequested)
+                    {
+                        await EventLoop();
+                        await Task.Delay(updateInterval, tokenSource.Token);
+                    }
+                }
+                catch (AbandonedMutexException)
+                {
+                    logger.Debug("Запрошено завершение потока...");
                 }
             }, TaskCreationOptions.LongRunning);
         }

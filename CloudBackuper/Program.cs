@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,6 +14,7 @@ using Newtonsoft.Json;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using Quartz;
 using Unity;
 
 namespace CloudBackuper
@@ -20,14 +22,12 @@ namespace CloudBackuper
     public sealed class Program : IDisposable
     {
         private static bool DEBUG_MODE;
+        private IUnityContainer container = new UnityContainer();
+        public static Program Instance { get; private set; }
 
         private readonly AutoResetEvent waitShutdown = new AutoResetEvent(false);
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
-        private readonly IUnityContainer container = new UnityContainer();
-        private readonly Config config;
-
         public readonly bool IsService;
-        private WebServer webServer;
 
         /// <summary>
         /// Главная точка входа для приложения.
@@ -47,21 +47,35 @@ namespace CloudBackuper
         public Program(bool isService)
         {
             IsService = isService;
+            Instance = this;
             Logging.initLogging();
             logger.Warn("Приложение было запущено!");
+            logger.Info($"Каталог откуда запущено приложение: {Information.AppPath}");
 
             TaskScheduler.UnobservedTaskException += (o, ev) => Logging.OnUnhandledError(ev.Exception, Logging.ErrorType.TaskScheduler);
             AppDomain.CurrentDomain.UnhandledException += (o, ev) => Logging.OnUnhandledError(ev.ExceptionObject as Exception, Logging.ErrorType.AppDomain);
-
-            logger.Info($"Каталог откуда запущено приложение: {Information.AppPath}");
-            string json = File.ReadAllText(Path.Combine(Information.AppPath, Information.Filename_Config));
-            config = JsonConvert.DeserializeObject<Config>(json);
-            Logging.applyLoggingSettings(config.Logging);
         }
 
         public async Task Run(Action<string> runAfter = null)
         {
-            container.RegisterInstance(this);
+            await Reload();
+
+            var config = container.Resolve<Config>();
+            runAfter?.Invoke(config.HostingURI);
+
+            waitShutdown.WaitOne();
+        }
+
+        public async Task Reload(bool log=false)
+        {
+            container?.Dispose();
+            container = new UnityContainer();
+            await Task.Delay(500);
+
+            if (log) logger.Warn("Запрошена перезагрузка конфигурации!");
+            string json = File.ReadAllText(Path.Combine(Information.AppPath, Information.Filename_Config));
+            var config = JsonConvert.DeserializeObject<Config>(json);
+            Logging.applyLoggingSettings(config.Logging);
             container.RegisterInstance(config);
 
             var scheduler = await Initializer.GetScheduler(container, config);
@@ -70,23 +84,26 @@ namespace CloudBackuper
             var jsEngine = new JSEngine(Path.Combine(Information.AppPath, Information.Filename_Script));
             container.RegisterInstance(jsEngine);
 
+            container.TryDispose<JobController>();
             var controller = await new JobController(container).Constructor(config);
             container.RegisterInstance(controller);
 
-            container.RegisterSingleton<PluginManager>().Resolve<PluginManager>();
+            var pm = new PluginManager(config);
+            container.RegisterInstance(pm);
 
             var staticFilesPath = Path.Combine(Information.AppPath, "WebApp");
-            logger.Debug($"Путь до папки со статикой: {staticFilesPath}");
-            webServer = new WebServer(container, staticFilesPath, DEBUG_MODE);
-            runAfter?.Invoke(config.HostingURI);
+            var webServer = new WebServer(container, staticFilesPath, DEBUG_MODE);
+            container.RegisterInstance(webServer);
+        }
 
-            waitShutdown.WaitOne();
+        public void Debug()
+        {
+            container.Dispose();
         }
 
         public void Dispose()
         {
             logger.Warn("Приложение было закрыто!");
-            webServer?.Dispose();
             waitShutdown.Set();
             container.Dispose();
             LogManager.Flush();

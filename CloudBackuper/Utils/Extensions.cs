@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using Unity;
 
 namespace CloudBackuper
 {
@@ -28,6 +30,13 @@ namespace CloudBackuper
             return assembly.GetCustomAttributes(typeof(AssemblyDescriptionAttribute), false)
                 .OfType<AssemblyDescriptionAttribute>()
                 .FirstOrDefault()?.Description ?? defaultValue;
+        }
+
+        public static void TryDispose<T>(this IUnityContainer container) where T : IDisposable
+        {
+            if (!container.IsRegistered<T>()) return;
+            var obj = container.Resolve<T>();
+            obj.Dispose();
         }
     }
 }

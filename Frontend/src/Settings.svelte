@@ -9,6 +9,11 @@ const shutdownClick = async() => {
     alert(res.Message);
 }
 
+
+const reloadClick = async() => {
+    const res = await fetch(settings.apiUrl + '/reload', { method: 'GET'}).then(x => x.json());
+    alert(res.Message);
+}
 </script>
 
 <style>
@@ -18,6 +23,7 @@ const shutdownClick = async() => {
     <div class="col-12">
 
     <button class="btn btn-danger {shutdownClass}" title="{shutdownTitle}" on:click="{shutdownClick}">Завершить приложение</button>
+    <button class="btn btn-warning" on:click="{reloadClick}">Перезагрузить конфигурацию</button>
 
     </div>
 </div>

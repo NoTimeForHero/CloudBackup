@@ -35,7 +35,7 @@ namespace CloudBackuper.Utils
             logger.Warn(ex.ToString());
         }
 
-        public static void initLogging()
+        private static LoggingConfiguration MakeDefault()
         {
             var config = new LoggingConfiguration();
 
@@ -46,12 +46,14 @@ namespace CloudBackuper.Utils
             config.AddRule(LogLevel.Info, LogLevel.Fatal, logConsole);
             config.AddRule(LogLevel.Info, LogLevel.Fatal, logFile);
             config.AddRule(LogLevel.Info, LogLevel.Fatal, logMemory);
-
-            LogManager.Configuration = config;
+            return config;
         }
+
+        public static void initLogging() => LogManager.Configuration = MakeDefault();
 
         public static void applyLoggingSettings(Config_Logging settings)
         {
+            LogManager.Configuration = MakeDefault();
             var config = LogManager.Configuration;
             settings = settings ?? Config_Logging.Defaults;
             var webService = settings.WebService;
