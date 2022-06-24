@@ -92,6 +92,7 @@
     <Compile Include="Config.cs" />
     <Compile Include="Core\Quartz\Initializer.cs" />
     <Compile Include="Core\Quartz\UploadJobState.cs" />
+    <Compile Include="Core\Web\ControllerMain.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\FakeUploader.cs" />
     <Compile Include="Utils\FileUtils.cs" />
@@ -103,8 +104,8 @@
     <Compile Include="Core\PluginManager.cs" />
     <Compile Include="Utils\Information.cs" />
     <Compile Include="Core\Quartz\Handlers.cs" />
-    <Compile Include="Core\WebServer.cs" />
-    <Compile Include="Core\WebSocketStatus.cs" />
+    <Compile Include="Core\Web\WebServer.cs" />
+    <Compile Include="Core\Web\WebSocketStatus.cs" />
     <Compile Include="Core\ZipTools.cs" />
     <Compile Include="Utils\Logging.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
