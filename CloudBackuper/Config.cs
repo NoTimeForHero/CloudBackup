@@ -60,17 +60,21 @@ namespace CloudBackuper
         public string Name { get; set; }
         public string Description { get; set; }
         public string CronSchedule { get; set; }
+        public string CopyTo { get; set; }
         public string RunAfter { get; set; }
         public string Path { get; set; }
         public string Password { get; set; }
         public Config_Masks Masks { get; set; }
+
+        public static Logger logger = LogManager.GetLogger("Validator");
 
         public void Validate()
         {
             bool hasCron = !string.IsNullOrEmpty(CronSchedule);
             bool hasAfter = !string.IsNullOrEmpty(RunAfter);
 
-            if (!hasCron && !hasAfter) throw new ArgumentException("Job must have CronSchedule or RunAfter!");
+            if (!hasCron && !hasAfter)
+                logger.Info($"Задача \"{Name}\" не имеет расписания и может быть запущена только вручную!");
         }
 
         public override string ToString()

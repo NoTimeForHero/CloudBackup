@@ -87,6 +87,15 @@
 										<strong>{job.Details.runAfter}</strong>
 									</div>
 								{/if}
+								{#if !job.Details.runAfter && !job.Details.nextLaunch}
+									<div>Ручной запуск задачи</div>
+								{/if}
+								{#if job.Details.copyTo}
+									<div>
+										Копия архива:
+										<strong>{job.Details.copyTo}</strong>
+									</div>
+								{/if}								
 							</div>
 						{/if}
 						<button class="btn btn-success" on:click={() => btnStart(jobName)}>

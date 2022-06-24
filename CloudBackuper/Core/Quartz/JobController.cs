@@ -49,9 +49,14 @@ namespace CloudBackuper.Core.Quartz
                 .Select(key => scheduler.GetJobDetail(key));
             var details = await Task.WhenAll(tasksDetail);
             var job = details.FirstOrDefault(xJob => xJob.Key.Name == name);
+            if (job == null)
+            {
+                logger.Warn($"Не удалось найти задачу: {name}");
+                return job;
+            }
             var map = new JobDataMap();
             if (noRunAfter) map["noRunAfter"] = true;
-            if (job != null) await scheduler.TriggerJob(job.Key, map);
+            await scheduler.TriggerJob(job.Key, map);
             return job;
         }
 
@@ -60,8 +65,11 @@ namespace CloudBackuper.Core.Quartz
             var states = (Dictionary<JobKey, UploadJobState>)Scheduler.Context["states"];
             var result =  states.ToDictionary(x => x.Key.Name, x =>
             {
+                var job = configs[x.Key];
                 var Details = new
                 {
+                    description = job.Description,
+                    copyTo = job.CopyTo,
                     nextLaunch = triggers.SafeGet(x.Key)?.GetNextFireTimeUtc().MapPresent(off => off.UtcDateTime),
                     runAfter = configs[x.Key].RunAfter
                 };
@@ -139,7 +147,11 @@ namespace CloudBackuper.Core.Quartz
                     var task = scheduler.AddJob(job, true);
                     tasks.Add(task);
                 }
-
+                else // Задача запускаемая только вручную
+                {
+                    var task = scheduler.AddJob(job, true);
+                    tasks.Add(task);
+                }
                 index++;
             }
 

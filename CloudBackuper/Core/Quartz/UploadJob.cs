@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,6 +76,12 @@ namespace CloudBackuper
                     jobState.Update($"Архивация файла: {name}", false);
                     jobState.Progress(current, total);
                 });
+                if (cfgJob.CopyTo != null)
+                {
+                    jobState.Update($"Копирование архива {filename}");
+                    var targetCopy = Path.Combine(cfgJob.CopyTo, filename);
+                    File.Copy(zipFilename, targetCopy, true);
+                }
                 jobState.Update($"Отправка архива {filename}");
                 jobState.isBytes = true;
                 await uploader.UploadFile(zipFilename, filename,
