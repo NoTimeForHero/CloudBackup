@@ -61,8 +61,8 @@ export class SocketClient {
 	}    
 }
 
-export const createSockets = (settings) => {
-    window.client = new SocketClient(settings);     
+export const createSockets = (settings, isDebug = false) => {
+    window.client = new SocketClient(settings, isDebug);     
 }
 
 export const useSockets = (eventName, callback) => {

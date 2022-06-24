@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -37,6 +38,18 @@ namespace CloudBackuper
             if (!container.IsRegistered<T>()) return;
             var obj = container.Resolve<T>();
             obj.Dispose();
+        }
+
+        public static TVal SafeGet<TKey, TVal>(this IDictionary<TKey, TVal> dictionary, TKey key)
+        {
+            if (!dictionary.ContainsKey(key)) return default;
+            return dictionary[key];
+        }
+
+        public static TOutput MapPresent<TInput, TOutput>(this TInput? input, Func<TInput, TOutput> updater) where TInput : struct
+        {
+            if (!input.HasValue) return default;
+            return updater(input.Value);
         }
     }
 }

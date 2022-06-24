@@ -36,6 +36,19 @@ namespace CloudBackuper
             Uploader.Initialize(root.Uploader.Settings);
         }
 
+        public IEnumerable<object> ListPlugin()
+        {
+            return Plugins.Select(plugin => new
+            {
+                plugin.Id,
+                plugin.Name,
+                plugin.Description,
+                plugin.Url,
+                plugin.Author,
+                Version = plugin.GetType().Assembly.GetName().Version.ToString()
+            });
+        }
+
         public void LookupAssemblies()
         {
             var location = Assembly.GetExecutingAssembly().Location;

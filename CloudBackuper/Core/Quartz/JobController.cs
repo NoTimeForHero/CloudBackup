@@ -15,6 +15,8 @@ namespace CloudBackuper.Core.Quartz
     public class JobController : IDisposable
     {
         protected static Dictionary<JobKey, IList<JobKey>> runAfter = new Dictionary<JobKey, IList<JobKey>>();
+        protected static Dictionary<JobKey, Config_Job> configs = new Dictionary<JobKey, Config_Job>();
+        protected static Dictionary<JobKey, ITrigger> triggers = new Dictionary<JobKey, ITrigger>();
         protected static Logger logger = LogManager.GetCurrentClassLogger();
         protected IUnityContainer container;
         protected IScheduler scheduler;
@@ -51,6 +53,25 @@ namespace CloudBackuper.Core.Quartz
             if (noRunAfter) map["noRunAfter"] = true;
             if (job != null) await scheduler.TriggerJob(job.Key, map);
             return job;
+        }
+
+        public Task<object> ListJobs()
+        {
+            var states = (Dictionary<JobKey, UploadJobState>)Scheduler.Context["states"];
+            var result =  states.ToDictionary(x => x.Key.Name, x =>
+            {
+                var Details = new
+                {
+                    nextLaunch = triggers.SafeGet(x.Key)?.GetNextFireTimeUtc().MapPresent(off => off.UtcDateTime),
+                    runAfter = configs[x.Key].RunAfter
+                };
+                return new
+                {
+                    Details,
+                    State = x.Value
+                };
+            });
+            return Task.FromResult((object)result);
         }
 
         public async Task<JobController> Constructor(Config config)
@@ -93,6 +114,7 @@ namespace CloudBackuper.Core.Quartz
                     .StoreDurably(true)
                     .Build();
 
+                configs.Add(job.Key, cfgJog);
                 jobStates.Add(job.Key, new UploadJobState());
 
                 if (!string.IsNullOrEmpty(cfgJog.CronSchedule)) // Задача по расписанию Cron
@@ -103,6 +125,7 @@ namespace CloudBackuper.Core.Quartz
                         .WithCronSchedule(cfgJog.CronSchedule)
                         .StartNow()
                         .Build();
+                    triggers.Add(job.Key, trigger);
 
                     var task = scheduler.ScheduleJob(job, trigger);
                     tasks.Add(task);

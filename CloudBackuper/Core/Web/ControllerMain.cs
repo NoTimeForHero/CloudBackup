@@ -19,10 +19,10 @@ namespace CloudBackuper.Web
 {
     class ControllerMain : WebApiController
     {
-        protected MemoryTarget memoryTarget;
-        protected Program program;
-        protected JobController controller;
-        private PluginManager pm;
+        private readonly MemoryTarget memoryTarget;
+        private readonly Program program;
+        private readonly JobController controller;
+        private readonly PluginManager pm;
 
         public ControllerMain(IUnityContainer container)
         {
@@ -39,14 +39,10 @@ namespace CloudBackuper.Web
         }
 
         [Route(HttpVerbs.Any, "/plugins")]
-        public IEnumerable<object> Plugins() => pm.Plugins;
+        public IEnumerable<object> Plugins() => pm.ListPlugin();
 
         [Route(HttpVerbs.Any, "/jobs")]
-        public object Index()
-        {
-            var states = (Dictionary<JobKey, UploadJobState>)controller.Scheduler.Context["states"];
-            return states.ToDictionary(x => x.Key.Name, x => x.Value);
-        }
+        public Task<object> Jobs() => controller.ListJobs();
 
         [Route(HttpVerbs.Any, "/jobs/start/{name}")]
         public Task<object> StartJob(string name)
