@@ -1,0 +1,19 @@
+.bold {
+    font-weight: bold;
+}
+
+.log_debug {
+    color: lightslategrey;
+}
+
+.log_info {
+    color: black;
+}
+
+.log_error {
+    color: darkred;
+}
+
+.log_warn {
+    color: darkgoldenrod;
+}

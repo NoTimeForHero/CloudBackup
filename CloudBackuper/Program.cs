@@ -17,6 +17,7 @@ using NLog.Targets;
 using Quartz;
 using Unity;
 using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace CloudBackuper
 {
@@ -75,12 +76,10 @@ namespace CloudBackuper
 
             if (log) logger.Warn("Запрошена перезагрузка конфигурации!");
             var config = YamlTools.Deserialize<Config>(Information.AppPath, Information.Filename_Config, "config.debug.json");
+            // var yaml = new SerializerBuilder().Build().Serialize(config);
 
             Logging.applyLoggingSettings(config.Logging);
             container.RegisterInstance(config);
-
-            //var scheduler = await Initializer.GetScheduler(container, config);
-            //container.RegisterInstance(scheduler);
 
             var jsEngine = new JSEngine(Path.Combine(Information.AppPath, Information.Filename_Script));
             container.RegisterInstance(jsEngine);

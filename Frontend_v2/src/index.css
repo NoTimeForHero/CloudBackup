@@ -1,0 +1,24 @@
+.navbar {
+    background-color: #e3f2fd;
+}
+
+.navbar-brand {
+    display: flex;
+    color: darkblue;
+    align-items: center;
+}
+
+main {
+    padding: 1em;
+    margin: 0 auto;
+}
+
+.nav-link.active {
+    text-decoration: underline;
+}
+
+#navbarNavAltMarkup {
+    display: flex;
+    flex-direction: row;
+    /* background: blue; */
+}

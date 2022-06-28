@@ -1,0 +1,5 @@
+{
+    "appName": "TestApp 0.0.1",
+    "isService": false,
+    "apiUrl": "http://localhost:3000/api"
+}
