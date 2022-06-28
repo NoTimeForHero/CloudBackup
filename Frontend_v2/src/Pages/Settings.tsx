@@ -1,8 +1,9 @@
 import { useState } from 'preact/compat';
 import Alert, { AlertProps } from '../Components/Alert';
 import { wait } from '../utils';
-import { makeReload, makeShutdown, SystemResponse } from '../api';
+import { makeReload, makeShutdown} from '../api';
 import { BootstrapStyle } from '../types';
+import { SystemResponse } from '../api/types';
 
 
 const Settings = () => {

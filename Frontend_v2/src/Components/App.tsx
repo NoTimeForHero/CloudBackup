@@ -5,6 +5,7 @@ import HealthCheck from './HealthCheck';
 import Logs from '../Pages/Logs';
 import Plugins from '../Pages/Plugins';
 import SettingsPage from '../Pages/Settings';
+import TaskManager from '../Pages/TaskManager';
 
 interface MenuItem {
   name: string,
@@ -13,7 +14,7 @@ interface MenuItem {
 }
 
 const menu : MenuItem[] = [
-  { name: 'tasks', title: 'Задачи', component: () => <div>Tasks</div>},
+  { name: 'tasks', title: 'Задачи', component: () => <TaskManager />},
   { name: 'logs', title: 'Логи', component: () => <Logs />},
   { name: 'plugins', title: 'Плагины', component: () => <Plugins /> },
   { name: 'settings', title: 'Настройки', component: () => <SettingsPage />},

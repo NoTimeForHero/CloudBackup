@@ -62,6 +62,13 @@ namespace CloudBackuper.Core.Quartz
 
         public Task<object> ListJobs()
         {
+            // Список задач, запускаемых после текущей
+            var runAfterList = configs
+                .Where(x => x.Value.RunAfter != null)
+                .Select(pair => new { Source = pair.Value.RunAfter, Target = pair.Key.Name })
+                .GroupBy(x => x.Source, x => x.Target)
+                .ToDictionary(x => x.Key, x => x.ToList());
+
             var states = (Dictionary<JobKey, UploadJobState>)Scheduler.Context["states"];
             var result =  states.ToDictionary(x => x.Key.Name, x =>
             {
@@ -71,10 +78,12 @@ namespace CloudBackuper.Core.Quartz
                     description = job.Description,
                     copyTo = job.CopyTo,
                     nextLaunch = triggers.SafeGet(x.Key)?.GetNextFireTimeUtc().MapPresent(off => off.UtcDateTime),
+                    jobsAfter = runAfterList.SafeGet(x.Key.Name),
                     runAfter = configs[x.Key].RunAfter
                 };
                 return new
                 {
+                    x.Key.Name,
                     Details,
                     State = x.Value
                 };

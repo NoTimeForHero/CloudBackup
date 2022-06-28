@@ -3,7 +3,7 @@ import { getPlugins} from '../api';
 import Alert from '../Components/Alert';
 import { renderError, useLoadable} from '../utils';
 import Progress from '../Components/Progress';
-import { Plugin } from '../api';
+import { Plugin } from '../api/types';
 
 const Plugins = () => {
 

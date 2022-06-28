@@ -3,7 +3,7 @@ import { cx } from '../utils';
 interface ProgressProps {
   className?: string,
   animated?: boolean
-  width?: number
+  width?: string
 }
 
 const Progress = (props?: ProgressProps) => {

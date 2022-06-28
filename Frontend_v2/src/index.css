@@ -17,6 +17,10 @@ main {
     text-decoration: underline;
 }
 
+.text-no-wrap {
+    white-space: nowrap;
+}
+
 #navbarNavAltMarkup {
     display: flex;
     flex-direction: row;
