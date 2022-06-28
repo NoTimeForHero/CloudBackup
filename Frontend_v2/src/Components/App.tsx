@@ -1,5 +1,5 @@
 import { Settings } from '../types';
-import { FC, useMemo, useState } from 'preact/compat';
+import { FC, useEffect, useMemo, useState } from 'preact/compat';
 import { cx } from '../utils';
 import HealthCheck from './HealthCheck';
 import Logs from '../Pages/Logs';
@@ -33,6 +33,13 @@ export const App : FC<AppProps> = (props) => {
   const setMenu = (item: MenuItem) => (ev: MouseEvent) => {
     setActiveMenu(item);
   };
+
+  useEffect(() => {
+    const hash = document.location.hash;
+    if (!hash) return;
+    const needed = menu.find(x => `#${x.name}` === hash);
+    if (needed) setActiveMenu(needed);
+  }, []);
 
   return <>
     <main className="container">

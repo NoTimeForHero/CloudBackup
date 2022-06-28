@@ -1,6 +1,7 @@
 import { useSockets } from '../socket';
 import { FC, useMemo, useState } from 'preact/compat';
 import { useAsyncEffect } from '../utils';
+import { ExtendedWindow } from '../types';
 
 enum Type {
   online,
@@ -38,6 +39,9 @@ const HealthCheck : FC = () => {
   useAsyncEffect(async() => {
     await loadImages();
     setLoaded(true);
+    // TODO: Придумать менее костыльный способ проверки состояния
+    const rawSocket = (window as ExtendedWindow).client!.socket;
+    if (rawSocket?.readyState == 1) setActive(true);
   }, []);
 
   if (!loaded) return <span>...</span>;
