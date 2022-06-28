@@ -2,13 +2,14 @@ import { useState } from 'preact/compat';
 import Alert, { AlertProps } from '../Components/Alert';
 import { wait } from '../utils';
 import { makeReload, makeShutdown} from '../api';
-import { BootstrapStyle } from '../types';
+import { BootstrapStyle, ExtendedWindow } from '../types';
 import { SystemResponse } from '../api/types';
 
 
 const Settings = () => {
 
   const [alert, setAlert] = useState<AlertProps|undefined>();
+  const settings = (window as ExtendedWindow).settings!;
 
   const doAction = async(action: () => Promise<SystemResponse>, type: BootstrapStyle, hideDelay: number) => {
     const data = await action();
@@ -23,7 +24,7 @@ const Settings = () => {
 
     {alert && <Alert {...alert} />}
 
-    <button className="btn btn-danger mr-3" title="{shutdownTitle}" disabled={false} onClick={shutdownClick}>
+    <button className="btn btn-danger mr-3" disabled={settings.isService} onClick={shutdownClick}>
       Завершить приложение
     </button>
     <button className="btn btn-warning" onClick={reloadClick}>

@@ -3,7 +3,8 @@ import { JobViewProps } from './JobView';
 
 export const ButtonsPanel = (props: JobViewProps) => {
   const {job} = props;
-  if (job.State.inProgress) return <Fragment/>;
+  const state = props.realtimeState ?? props.job.State;
+  if (state.inProgress) return <Fragment/>;
   return <div>
     {job.Details.jobsAfter &&
         <button className="btn btn-success mr-1"

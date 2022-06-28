@@ -1,16 +1,31 @@
 import { ProgressPanel } from './ProgressPanel';
 import { ButtonsPanel } from './ButtonsPanel';
-import { Job } from '../../api/types';
+import { Job, JobState } from '../../api/types';
 
 export interface JobViewProps {
-  onJobStart?: (job: Job, chain?: boolean) => void,
   job: Job
+  realtimeState?: JobState,
+  onJobStart?: (job: Job, chain?: boolean) => void,
+}
+
+const dateFormat = new Intl.DateTimeFormat('ru', {
+  day: 'numeric',
+  month: 'long'
+})
+const timeFormat = new Intl.DateTimeFormat('ru', {
+  hour: '2-digit',
+  minute: '2-digit'
+})
+
+const showDate = (nextLaunch: string) => {
+  const date = new Date(nextLaunch);
+  return dateFormat.format(date) + ' в ' + timeFormat.format(date);
 }
 
 const ShowLaunchType = (job: Job) => {
   if (job.Details.nextLaunch) return <div>
     <span className="text-no-wrap">Следующий запуск:&nbsp;</span>
-    <span className="text-no-wrap font-weight-bold">{job.Details.nextLaunch}</span>
+    <span className="text-no-wrap font-weight-bold">{showDate(job.Details.nextLaunch)}</span>
   </div>
   if (job.Details.runAfter) return <div>
     Запускается после:&nbsp;

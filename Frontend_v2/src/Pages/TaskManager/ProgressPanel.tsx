@@ -4,7 +4,7 @@ import Progress from '../../Components/Progress';
 import { JobViewProps } from './JobView';
 
 export const ProgressPanel = (props: JobViewProps) => {
-  const state = props.job.State;
+  const state = props.realtimeState ?? props.job.State;
   if (!state.inProgress) return <Fragment/>;
 
   const hasBottom = (state.total ?? 0) > 0;
