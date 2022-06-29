@@ -64,6 +64,7 @@ const JobView = (props: JobViewProps) => {
       </div>
       <div className="card-body">
 
+        <div>ID: <strong>{job.Id}</strong></div>
         {Details.description}
         {Details.description && <hr/>}
         {ShowLaunchType(job)}

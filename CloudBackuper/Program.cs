@@ -75,8 +75,9 @@ namespace CloudBackuper
             await Task.Delay(500);
 
             if (log) logger.Warn("Запрошена перезагрузка конфигурации!");
-            var config = YamlTools.Deserialize<Config>(Information.AppPath, Information.Filename_Config, "config.debug.json");
-            // var yaml = new SerializerBuilder().Build().Serialize(config);
+            var debugJson = DEBUG_MODE ? "config.debug.json" : null;
+            var config = YamlTools.Deserialize<Config>(Information.AppPath, Information.Filename_Config, debugJson);
+            //var yaml = new SerializerBuilder().Build().Serialize(config);
 
             Logging.applyLoggingSettings(config.Logging);
             container.RegisterInstance(config);

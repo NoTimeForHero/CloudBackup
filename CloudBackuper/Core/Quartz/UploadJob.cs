@@ -48,7 +48,7 @@ namespace CloudBackuper
             var jobIndex = (int) dataMap["index"];
             var cfgJob = dataMap["data"] as Config_Job;
 
-            logger.Info($"Задача №{jobIndex} запущена: {cfgJob.Name}");
+            logger.Info($"Задача №{jobIndex} запущена: {cfgJob.Name} ({cfgJob.Id})");
 
             var jsEngine = container.Resolve<JSEngine>();
 
@@ -90,7 +90,7 @@ namespace CloudBackuper
 
             await uploader.Disconnect();
             jobState.Done("Задача успешно завершена!");
-            logger.Info($"Задача №{jobIndex} завершена: {cfgJob.Name}");
+            logger.Info($"Задача №{jobIndex} завершена: {cfgJob.Name} ({cfgJob.Id})");
         }
     }
 }

@@ -12,11 +12,11 @@ export const ButtonsPanel = (props: JobViewProps) => {
                 title="Запустить цепочку заданий">
             <i className="fa fa-forward" aria-hidden="true"/>
         </button>}
-    <button className="btn btn-success"
+    <button className="btn btn-success text-no-wrap"
             onClick={() => props.onJobStart?.call(null, job)}
             title="Запустить задачу">
-      <i className="fa fa-play mr-3" aria-hidden="true"/>
-      Запустить задачу
+      <i className="fa fa-play" aria-hidden="true"/>
+      <span className="ml-3 d-sm-none d-md-inline">Запустить задачу</span>
     </button>
   </div>
 }

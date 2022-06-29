@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using Newtonsoft.Json;
@@ -26,7 +27,9 @@ namespace CloudBackuper
     public class Config_Uploader
     {
         public string Type { get; set; }
-        public JObject Settings { get; set; }
+        // Метод позволят обойти проблему сериализации JObject в YML из-за ограничений DotNetYML
+        // Взято отсюда: https://stackoverflow.com/questions/65475843/c-sharp-convert-ot-cast-expandoobject-to-specific-class-object
+        public ExpandoObject Settings { get; set; }
     }
 
     public class Config_Logging
@@ -55,13 +58,16 @@ namespace CloudBackuper
 
     public class Config_Job
     {
+        private string _id;
+        private string _runAfter;
+
         [JsonProperty(Required = Required.Always)]
-        public string Id { get; set; }
+        public string Id { get => _id; set => _id = value?.ToLower(); }
         public string Name { get; set; }
         public string Description { get; set; }
         public string CronSchedule { get; set; }
         public string CopyTo { get; set; }
-        public string RunAfter { get; set; }
+        public string RunAfter { get => _runAfter; set => _runAfter = value?.ToLower(); }
         public string Path { get; set; }
         public string Password { get; set; }
         public Config_Masks Masks { get; set; }
@@ -79,7 +85,7 @@ namespace CloudBackuper
 
         public override string ToString()
         {
-            return $"Job[Name='{Name}',Path='{Path}',CronSchedule='{CronSchedule}']";
+            return $"Job[Id={Id},Name='{Name}',Path='{Path}',CronSchedule='{CronSchedule}']";
         }
     }
 

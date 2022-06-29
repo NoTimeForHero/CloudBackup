@@ -41,8 +41,8 @@ const TaskManager = () => {
   );
 
   const onJobStart = async(job: Job, chain?: boolean) => {
-    console.log('Запущена задача', job.Name);
-    await runJob(job.Name, chain);
+    console.log('Запущена задача', job.Id, '->', job.Name);
+    await runJob(job.Id, chain);
     await refreshJobs();
   }
 
@@ -77,8 +77,8 @@ const TaskManager = () => {
 
     <div className="row">
       {Object.values(jobs).map((job) =>
-        <JobView key={job.Name}
-                 realtimeState={jobStates[job.Name]}
+        <JobView key={job.Id}
+                 realtimeState={jobStates[job.Id]}
                  job={job}
                  onJobAction={onJobAction}
                  onJobStart={onJobStart} />)}

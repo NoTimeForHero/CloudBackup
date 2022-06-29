@@ -14,6 +14,7 @@ export interface SystemResponse {
 export type JobList = Record<string, Job>;
 
 export interface Job {
+  Id: string,
   Name: string,
   Details: JobDetails,
   State: JobState
