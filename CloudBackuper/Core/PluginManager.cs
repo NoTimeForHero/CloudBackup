@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CloudBackuper.Plugins;
+using Newtonsoft.Json.Linq;
 using NLog;
 
 namespace CloudBackuper
@@ -33,7 +34,7 @@ namespace CloudBackuper
                 throw new ApplicationException(
                     $"Тип \"{type.FullName}\" не наследует интерфейс {nameof(IUploader)}!");
             Uploader = (IUploader)Activator.CreateInstance(type);
-            Uploader.Initialize(root.Uploader.Settings);
+            Uploader.Initialize(root.Uploader.Settings.Cast<JObject>());
         }
 
         public IEnumerable<object> ListPlugin()

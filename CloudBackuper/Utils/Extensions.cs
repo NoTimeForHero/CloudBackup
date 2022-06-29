@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Newtonsoft.Json;
 using Unity;
 
 namespace CloudBackuper
@@ -45,6 +47,8 @@ namespace CloudBackuper
             if (!dictionary.ContainsKey(key)) return default;
             return dictionary[key];
         }
+
+        public static T Cast<T>(this ExpandoObject obj) => JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj));
 
         public static TOutput MapPresent<TInput, TOutput>(this TInput? input, Func<TInput, TOutput> updater) where TInput : struct
         {

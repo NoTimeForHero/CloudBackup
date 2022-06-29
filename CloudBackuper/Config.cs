@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using Newtonsoft.Json;
@@ -26,7 +27,10 @@ namespace CloudBackuper
     public class Config_Uploader
     {
         public string Type { get; set; }
-        public JObject Settings { get; set; }
+
+        // Метод позволят обойти проблему сериализации JObject в YML из-за ограничений DotNetYML
+        // Взято отсюда: https://stackoverflow.com/questions/65475843/c-sharp-convert-ot-cast-expandoobject-to-specific-class-object
+        public ExpandoObject Settings { get; set; }
     }
 
     public class Config_Logging
