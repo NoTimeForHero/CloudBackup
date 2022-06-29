@@ -2,10 +2,16 @@ import { ProgressPanel } from './ProgressPanel';
 import { ButtonsPanel } from './ButtonsPanel';
 import { Job, JobState } from '../../api/types';
 
+export enum JobAction {
+  Edit,
+  MakeLink
+}
+
 export interface JobViewProps {
   job: Job
   realtimeState?: JobState,
   onJobStart?: (job: Job, chain?: boolean) => void,
+  onJobAction?: (action: JobAction, job: Job) => void,
 }
 
 const dateFormat = new Intl.DateTimeFormat('ru', {
@@ -39,8 +45,22 @@ const JobView = (props: JobViewProps) => {
   const { Details } = job;
   return <div className="col-sm-5 m-1 mb-2 mt-2">
     <div className="card">
-      <div className="card-header">
-        Задача: <strong>{job.Name}</strong>
+      <div className="card-header d-flex align-items-center">
+        <div>
+          Задача: <strong>{job.Name}</strong>
+        </div>
+        <div class="ml-auto">
+          <button class="btn btn-warning mr-2 px-3 py-1"
+                  title="Редактировать задачу"
+                  onClick={() => props.onJobAction?.call(null, JobAction.Edit, job)}>
+            <i className="fa fa-pencil" aria-hidden="true" />
+          </button>
+          <button className="btn btn-info px-3 py-1"
+                  title="Создать ярлык на рабочем столе"
+                  onClick={() => props.onJobAction?.call(null, JobAction.MakeLink, job)}>
+            <i className="fa fa-external-link" aria-hidden="true" />
+          </button>
+        </div>
       </div>
       <div className="card-body">
 

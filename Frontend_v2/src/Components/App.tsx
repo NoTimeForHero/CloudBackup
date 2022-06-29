@@ -1,45 +1,54 @@
-import { Settings } from '../types';
-import { FC, useEffect, useMemo, useState } from 'preact/compat';
-import { cx } from '../utils';
+import { ExtendedWindow } from '../types';
+import { createContext, useEffect, useState } from 'preact/compat';
 import HealthCheck from './HealthCheck';
+import { cx } from '../utils';
+import TaskManager from '../Pages/TaskManager';
 import Logs from '../Pages/Logs';
 import Plugins from '../Pages/Plugins';
 import SettingsPage from '../Pages/Settings';
-import TaskManager from '../Pages/TaskManager';
 
-interface MenuItem {
+export interface MenuItem {
   name: string,
   title: string,
   component: () => JSX.Element
 }
 
-const menu : MenuItem[] = [
-  { name: 'tasks', title: 'Задачи', component: () => <TaskManager />},
-  { name: 'logs', title: 'Логи', component: () => <Logs />},
-  { name: 'plugins', title: 'Плагины', component: () => <Plugins /> },
-  { name: 'settings', title: 'Настройки', component: () => <SettingsPage />},
-]
-
-interface AppProps {
-  settings: Settings
+interface AppContext {
+  setBody: (body: JSX.Element|undefined) => void,
 }
 
-export const App : FC<AppProps> = (props) => {
-  const { settings } = props;
+export const menu: MenuItem[] = [
+  {name: 'tasks', title: 'Задачи', component: () => <TaskManager/>},
+  {name: 'logs', title: 'Логи', component: () => <Logs/>},
+  {name: 'plugins', title: 'Плагины', component: () => <Plugins/>},
+  {name: 'settings', title: 'Настройки', component: () => <SettingsPage/>},
+]
+
+export const appContext = createContext<AppContext>({
+  setBody: () => {},
+});
+
+const App = () => {
+  const settings = (window as ExtendedWindow).settings!;
 
   const [activeMenu, setActiveMenu] = useState<MenuItem>(menu[0]);
-  const component = useMemo(() => activeMenu.component(), [activeMenu]);
+  const [component, setComponent] = useState<JSX.Element>();
 
   const setMenu = (item: MenuItem) => (ev: MouseEvent) => {
     setActiveMenu(item);
+    // Позволяет выйти из модального окна, например создания новой задачи?
+    setComponent(item.component());
   };
 
   useEffect(() => {
     const hash = document.location.hash;
     if (!hash) return;
     const needed = menu.find(x => `#${x.name}` === hash);
-    if (needed) setActiveMenu(needed);
+    if (!needed) return;
+    setActiveMenu(needed);
   }, []);
+
+  useEffect(() => setComponent(activeMenu.component()), [activeMenu]);
 
   return <>
     <main className="container">
@@ -61,8 +70,13 @@ export const App : FC<AppProps> = (props) => {
         </div>
       </nav>
 
-      {component}
+      <appContext.Provider value={{setBody: setComponent}}>
+        {component}
+      </appContext.Provider>
     </main>
   </>
 }
-export default App;
+
+const WrappedApp = () => <App/>;
+
+export default WrappedApp;
