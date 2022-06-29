@@ -52,7 +52,7 @@ namespace CloudBackuper.Core.Quartz
             if (job == null)
             {
                 logger.Warn($"Не удалось найти задачу: {name}");
-                return job;
+                return null;
             }
             var map = new JobDataMap();
             if (noRunAfter) map["noRunAfter"] = true;
@@ -83,7 +83,8 @@ namespace CloudBackuper.Core.Quartz
                 };
                 return new
                 {
-                    x.Key.Name,
+                    job.Id,
+                    job.Name,
                     Details,
                     State = x.Value
                 };
@@ -126,7 +127,7 @@ namespace CloudBackuper.Core.Quartz
                 };
 
                 var job = JobBuilder.Create<UploadJob>()
-                    .WithIdentity(cfgJog.Name)
+                    .WithIdentity(cfgJog.Id)
                     .UsingJobData(data)
                     .StoreDurably(true)
                     .Build();
@@ -138,7 +139,7 @@ namespace CloudBackuper.Core.Quartz
                 {
 
                     var trigger = TriggerBuilder.Create()
-                        .WithIdentity(cfgJog.Name)
+                        .WithIdentity(cfgJog.Id)
                         .WithCronSchedule(cfgJog.CronSchedule)
                         .StartNow()
                         .Build();

@@ -37,7 +37,7 @@ Jobs:
 - Id: user_files
   Name: User files
   Description:
-  RunAfter: System files
+  RunAfter: system_files
   Path: C:\Users\user\Desktop
   Password: symjPph60X7wMpmPyHfRzbyp0asdke6q
   Masks:
