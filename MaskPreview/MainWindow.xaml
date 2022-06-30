@@ -1,0 +1,65 @@
+﻿<Window x:Class="MaskPreview.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MaskPreview"
+        mc:Ignorable="d"
+        FontSize="14"
+        Height="650" Width="1000">
+    <Window.Title>Управление масками для задачи</Window.Title>
+    <Border Padding="5" Background="#EEFFDB">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="10*" />
+                <RowDefinition Height="15*" />
+            </Grid.RowDefinitions>
+
+
+            <StackPanel Grid.Row="0" Grid.ColumnSpan="2"
+                        Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
+                <Label Margin="0,0,20,0">Директория с файлами: </Label>
+                <TextBox MinWidth="500"/>
+                <Button Padding="15,0">...</Button>
+            </StackPanel>
+
+            <GroupBox 
+                Header="Маски файлов (ПКМ для управления)"
+                Grid.Row="1" Grid.Column="0" BorderBrush="#B8D4E3" BorderThickness="1" Padding="3" Margin="2">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <CheckBox Grid.Row="0" Margin="5,5" >Все маски КРОМЕ этих (инвертировать)</CheckBox>
+                    <local:EditableList Grid.Row="1" Grid.ColumnSpan="2" x:Name="listMasks"></local:EditableList>
+                </Grid>
+            </GroupBox>
+
+            <GroupBox 
+                Header="Исключенные директории"
+                Grid.Row="1" Grid.Column="1" BorderBrush="#B8D4E3" BorderThickness="1" Padding="3" Margin="2">
+                <local:EditableList  x:Name="listFolders"></local:EditableList>
+            </GroupBox>
+
+            <TabControl Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="Transparent" Margin="5">
+                <TabItem Header="Предпросмотр">
+
+                </TabItem>
+                <TabItem Header="Конфигурация YML">
+
+                </TabItem>
+                <TabItem Header="Тестовый архив">
+
+                </TabItem>
+
+            </TabControl>
+
+        </Grid>
+    </Border>
+</Window>

@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudBackup_PluginCore", "C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plugin_YandexDisk", "Plugin_YandexDisk\Plugin_YandexDisk.csproj", "{7B3876F2-48CF-41D5-B979-5E56DD25C56F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaskPreview", "MaskPreview\MaskPreview.csproj", "{A844A468-EF5A-4E2F-A040-1E845827411E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{7B3876F2-48CF-41D5-B979-5E56DD25C56F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B3876F2-48CF-41D5-B979-5E56DD25C56F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B3876F2-48CF-41D5-B979-5E56DD25C56F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A844A468-EF5A-4E2F-A040-1E845827411E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A844A468-EF5A-4E2F-A040-1E845827411E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A844A468-EF5A-4E2F-A040-1E845827411E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A844A468-EF5A-4E2F-A040-1E845827411E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
