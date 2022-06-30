@@ -5,6 +5,9 @@ import { cx } from '../../utils';
 import { appContext } from '../../Components/App';
 import TaskManager from '../TaskManager';
 import StepButtons from './StepButtons';
+import TabDescription from './TabDescription';
+import TabTriggers from './TabTriggers';
+import TabMasks from './TabMasks';
 
 export interface JobEditorProps {
   edited?: Job
@@ -18,10 +21,11 @@ interface Step {
 }
 
 const steps : Step[] = [
-  {id: 'primary', icon: 'fa-file-text-o', name: 'Основное', component: (props) => <TabMain {...props} />},
-  {id: 'triggers', icon: 'fa-clock-o', name: 'Триггеры', component: (props) => <TabMain {...props} />},
-  {id: 'masks', icon: 'fa-folder-open-o', name: 'Маски', component: (props) => <TabMain {...props} />},
-  {id: 'controls', icon: 'fa-check-square-o', name: 'Управление', component: (props) => <TabMain {...props} />},
+  {id: 'primary', icon: 'fa-shield', name: 'Основное', component: (props) => <TabMain {...props} />},
+  {id: 'description', icon: 'fa-file-text-o', name: 'Описание', component: (props) => <TabDescription {...props} />},
+  {id: 'masks', icon: 'fa-folder-open-o', name: 'Маски', component: (props) => <TabMasks />},
+  {id: 'triggers', icon: 'fa-clock-o', name: 'Триггеры', component: (props) => <TabTriggers {...props} />},
+  {id: 'extra', icon: 'fa-asterisk', name: 'Дополнительно', component: () => <div></div>}
 ]
 
 const JobEditor = (props: JobEditorProps) => {
