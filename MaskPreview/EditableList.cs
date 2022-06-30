@@ -33,11 +33,7 @@ namespace MaskPreview
             InitializeContextMenu();
             MouseDoubleClick += (o,ev) => EditItem();
             KeyUp += EditableList_KeyUp;
-
-            Items.Add("Line 1");
-            Items.Add("Line 2");
-            Items.Add("Line 3");
-            Items.Add("Line 4");
+            // for (int i = 0; i < 10; i++) Items.Add($"Line {i}");
         }
 
         private void EditableList_KeyUp(object sender, KeyEventArgs e)

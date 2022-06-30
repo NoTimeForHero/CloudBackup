@@ -24,8 +24,8 @@
             <StackPanel Grid.Row="0" Grid.ColumnSpan="2"
                         Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
                 <Label Margin="0,0,20,0">Директория с файлами: </Label>
-                <TextBox MinWidth="500"/>
-                <Button Padding="15,0">...</Button>
+                <TextBox MinWidth="500" x:Name="folderValue" IsReadOnly="True"/>
+                <Button Padding="15,0" x:Name="folderButton">...</Button>
             </StackPanel>
 
             <GroupBox 
@@ -36,7 +36,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
-                    <CheckBox Grid.Row="0" Margin="5,5" >Все маски КРОМЕ этих (инвертировать)</CheckBox>
+                    <CheckBox Grid.Row="0" Margin="5,5" x:Name="chkInvertMask">Все маски КРОМЕ этих (инвертировать)</CheckBox>
                     <local:EditableList Grid.Row="1" Grid.ColumnSpan="2" x:Name="listMasks"></local:EditableList>
                 </Grid>
             </GroupBox>
@@ -52,7 +52,7 @@
 
                 </TabItem>
                 <TabItem Header="Конфигурация YML">
-
+                    <TextBox IsReadOnly="True" />
                 </TabItem>
                 <TabItem Header="Тестовый архив">
 
