@@ -50,16 +50,7 @@ const JobView = (props: JobViewProps) => {
           Задача: <strong>{job.Name}</strong>
         </div>
         <div class="ml-auto">
-          <button class="btn btn-warning mr-2 px-3 py-1"
-                  title="Редактировать задачу"
-                  onClick={() => props.onJobAction?.call(null, JobAction.Edit, job)}>
-            <i className="fa fa-pencil" aria-hidden="true" />
-          </button>
-          <button className="btn btn-info px-3 py-1"
-                  title="Создать ярлык на рабочем столе"
-                  onClick={() => props.onJobAction?.call(null, JobAction.MakeLink, job)}>
-            <i className="fa fa-external-link" aria-hidden="true" />
-          </button>
+
         </div>
       </div>
       <div className="card-body">
