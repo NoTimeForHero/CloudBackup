@@ -18,7 +18,7 @@ namespace CloudBackuper
         public Config_Uploader Uploader { get; set; }
         public Config_JobRetrying JobRetrying { get; set; }
         public List<Config_Job> Jobs { get; set; }
-        public string HostingURI { get; set; } = "http://localhost:3000";
+        public string HostingURI { get; set; }
 
         [JsonConverter(typeof(ConfigLogging_JsonConverter))]
         public Config_Logging Logging { get; set; }

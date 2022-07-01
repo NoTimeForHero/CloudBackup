@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -22,27 +26,26 @@ namespace MaskPreview
     public partial class MainWindow : Window
     {
         public DataModel Model { get; }
-        public event Action OnModelChanged;
 
         public MainWindow()
         {
-            InitializeComponent();
             Model = new DataModel();
-            chkInvertMask.Checked += (o, ev) =>
-            {
-                Model.Inverted = chkInvertMask.IsChecked ?? false;
-                OnModelChanged?.Invoke();
-            };
-            listMasks.ItemChanged += (o, ev) =>
-            {
-                Model.Masks = listMasks.DisplayItems;
-                OnModelChanged?.Invoke();
-            };
-            listFolders.ItemChanged += (o, ev) =>
-            {
-                Model.ExcludedFolders = listFolders.DisplayItems;
-                OnModelChanged?.Invoke();
-            };
+            DataContext = Model;
+            InitializeComponent();
+
+            chkInvertMask.SetBinding(ToggleButton.IsCheckedProperty, nameof(DataModel.Inverted));
+            folderValue.SetBinding(TextBox.TextProperty, nameof(DataModel.Path));
+            listMasks.DumpItemBinding(Model.Masks, (data) => Model.Masks = new ObservableCollection<string>(data));
+            listFolders.DumpItemBinding(Model.ExcludedFolders, (data) => Model.ExcludedFolders = new ObservableCollection<string>(data));
+
+
+            Model.Inverted = true;
+            Model.Masks.Add("xslx");
+            Model.Masks.Add("xls");
+            Model.Masks.Add("xml");
+            Model.ExcludedFolders.Add("TEMP");
+            Model.ExcludedFolders.Add("BIN");
+
             folderButton.Click += (o, ev) =>
             {
                 // TODO: Заменить на нормальную либу диалогов вроде Ookii.Dialogs.Wpf или WindowsAPICodePack
@@ -50,19 +53,23 @@ namespace MaskPreview
                 {
                     System.Windows.Forms.DialogResult result = dialog.ShowDialog();
                     if (result == System.Windows.Forms.DialogResult.Cancel) return;
-                    folderValue.Text = dialog.SelectedPath;
                     Model.Path = dialog.SelectedPath;
-                    OnModelChanged?.Invoke();
                 }
             };
         }
 
-        public class DataModel
+        public class DataModel : AReactive
         {
-            public bool Inverted { get; set; }
-            public string Path { get; set; }
-            public string[] Masks { get; set; }
-            public string[] ExcludedFolders { get; set; }
+            private bool inverted;
+            private string path;
+            private ObservableCollection<string> masks = new ObservableCollection<string>();
+            private ObservableCollection<string> excludedFolders = new ObservableCollection<string>();
+
+            public bool Inverted { get => inverted; set => SetField(ref inverted, value); }
+            public string Path { get => path; set => SetField(ref path, value); }
+            public ObservableCollection<string> Masks { get => masks; set => SetField(ref masks, value); }
+            public ObservableCollection<string> ExcludedFolders { get => excludedFolders; set => SetField(ref excludedFolders, value); }
         }
     }
 }
+

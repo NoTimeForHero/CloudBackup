@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,7 +18,22 @@ namespace MaskPreview
 
         public event EventHandler<ItemChangeEvent> ItemChanged;
         //public string[] DisplayItems => Items.OfType<TextBlock>().Select(x => x.Text).ToArray();
-        public string[] DisplayItems => Items.OfType<TextBlock>().Select(x => x.Text).ToArray();
+        // public string[] DisplayItems => Items.OfType<string>().ToArray();
+        public string[] DisplayItems
+        {
+            get => Items.OfType<string>().ToArray();
+            set
+            {
+                Items.Clear();
+                foreach (var item in value) Items.Add(item);
+            }
+        }
+
+        public void DumpItemBinding(ObservableCollection<string> target, Action<string[]> onChange)
+        {
+            target.CollectionChanged += (o, ev) => DisplayItems = target.ToArray();
+            ItemChanged += (o, ev) => onChange(DisplayItems);
+        }
 
         public class ItemChangeEvent : EventArgs
         {

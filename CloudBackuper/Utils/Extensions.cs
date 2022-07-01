@@ -55,5 +55,8 @@ namespace CloudBackuper
             if (!input.HasValue) return default;
             return updater(input.Value);
         }
+
+        public static string Join(this IEnumerable<string> values, string separator)
+            => string.Join(separator, values);
     }
 }

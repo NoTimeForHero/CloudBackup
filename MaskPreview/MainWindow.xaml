@@ -52,7 +52,7 @@
 
                 </TabItem>
                 <TabItem Header="Конфигурация YML">
-                    <TextBox IsReadOnly="True" />
+                    <TextBox IsReadOnly="True" x:Name="textYML" />
                 </TabItem>
                 <TabItem Header="Тестовый архив">
 

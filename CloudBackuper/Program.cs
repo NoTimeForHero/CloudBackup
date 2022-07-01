@@ -76,7 +76,11 @@ namespace CloudBackuper
 
             if (log) logger.Warn("Запрошена перезагрузка конфигурации!");
             var debugJson = DEBUG_MODE ? "config.debug.json" : null;
-            var config = YamlTools.Deserialize<Config>(Information.AppPath, Information.Filename_Config, debugJson);
+
+            // TODO: Переписать по нормальному?
+            var config = YamlTools.DeserializeFile<Config>(Information.AppPath, Information.Filename_Config, debugJson);
+
+            config.HostingURI = config.HostingURI ?? "http://localhost:3000";
             //var yaml = new SerializerBuilder().Build().Serialize(config);
 
             Logging.applyLoggingSettings(config.Logging);
