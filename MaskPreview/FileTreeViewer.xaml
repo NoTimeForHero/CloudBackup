@@ -43,7 +43,9 @@
             </TreeView.ItemTemplate>
         </TreeView>
         <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="panelRefresh">
-            <Label FontSize="14">Данные были изменены, необходимо обновить дерево файлов!</Label>
+            <Border Padding="5,10" Background="#FFEFFB9B" CornerRadius="10">
+                <Label FontSize="14">Данные были изменены, необходимо обновить дерево файлов!</Label>
+            </Border>
             <Button FontSize="14" Padding="100,10" 
                     Margin="0,20,0,0" 
                     HorizontalAlignment="Center"

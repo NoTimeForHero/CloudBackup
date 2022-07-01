@@ -29,8 +29,14 @@
             </StackPanel>
 
             <GroupBox 
+                Header="Исключенные директории"
+                Grid.Row="1" Grid.Column="1" BorderBrush="#B8D4E3" BorderThickness="1" Padding="3" Margin="2">
+                <local:EditableList  x:Name="listFolders"></local:EditableList>
+            </GroupBox>
+
+            <GroupBox 
                 Header="Маски файлов (ПКМ для управления)"
-                Grid.Row="1" Grid.Column="0" BorderBrush="#B8D4E3" BorderThickness="1" Padding="3" Margin="2">
+                Grid.Row="2" Grid.Column="1" BorderBrush="#B8D4E3" BorderThickness="1" Padding="3" Margin="2">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -41,13 +47,7 @@
                 </Grid>
             </GroupBox>
 
-            <GroupBox 
-                Header="Исключенные директории"
-                Grid.Row="1" Grid.Column="1" BorderBrush="#B8D4E3" BorderThickness="1" Padding="3" Margin="2">
-                <local:EditableList  x:Name="listFolders"></local:EditableList>
-            </GroupBox>
-
-            <TabControl Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="Transparent" Margin="5">
+            <TabControl Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" Background="Transparent" Margin="5">
                 <TabItem Header="Предпросмотр">
                     <local:FileTreeViewer x:Name="treePreview" />
                 </TabItem>

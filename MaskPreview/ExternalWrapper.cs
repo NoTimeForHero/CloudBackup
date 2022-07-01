@@ -48,10 +48,12 @@ namespace MaskPreview
         {
             var output = new ViewNode { Name = input.Name };
             var folders = input.Nodes
-                .Select(Traverse);
+                .Select(Traverse)
+                .Where(x => x != null);
             var files = input.Files
                 .Select(name => new ViewNode { Name = name, File = true });
-            var merged = Enumerable.Empty<ViewNode>().Concat(folders).Concat(files);
+            var merged = Enumerable.Empty<ViewNode>().Concat(folders).Concat(files).ToArray();
+            if (merged.Length == 0) return null;
             output.Nodes = new ObservableCollection<ViewNode>(merged);
             return output;
         }
