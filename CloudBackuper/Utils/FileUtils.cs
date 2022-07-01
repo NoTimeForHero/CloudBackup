@@ -44,11 +44,12 @@ namespace CloudBackuper
             foreach (var file in files)
             {
                 var ext = Path.GetExtension(file);
+                var baseName = Path.GetFileName(file);
                 var contains = masks.Masks.Contains(ext, StringComparer.InvariantCultureIgnoreCase);
                 if (masks.MasksExclude && contains) continue;
                 if (!masks.MasksExclude && !contains) continue;
                 flattenFiles?.Add(file);
-                rawFiles.Add(file);
+                rawFiles.Add(baseName);
             }
             logger.Debug($"Файлов подходящих условиям в '{path}' найдено: {rawFiles.Count}");
             node.Files = rawFiles;

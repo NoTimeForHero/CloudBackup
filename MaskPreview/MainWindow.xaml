@@ -49,7 +49,7 @@
 
             <TabControl Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="Transparent" Margin="5">
                 <TabItem Header="Предпросмотр">
-
+                    <local:FileTreeViewer x:Name="treePreview" />
                 </TabItem>
                 <TabItem Header="Конфигурация YML">
                     <TextBox IsReadOnly="True" x:Name="textYML" />

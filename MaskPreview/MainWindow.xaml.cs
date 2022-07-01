@@ -38,14 +38,6 @@ namespace MaskPreview
             listMasks.DumpItemBinding(Model.Masks, (data) => Model.Masks = new ObservableCollection<string>(data));
             listFolders.DumpItemBinding(Model.ExcludedFolders, (data) => Model.ExcludedFolders = new ObservableCollection<string>(data));
 
-
-            Model.Inverted = true;
-            Model.Masks.Add("xslx");
-            Model.Masks.Add("xls");
-            Model.Masks.Add("xml");
-            Model.ExcludedFolders.Add("TEMP");
-            Model.ExcludedFolders.Add("BIN");
-
             folderButton.Click += (o, ev) =>
             {
                 // TODO: Заменить на нормальную либу диалогов вроде Ookii.Dialogs.Wpf или WindowsAPICodePack

@@ -13,15 +13,28 @@ namespace MaskPreview
         public MainController()
         {
             window = new MainWindow();
-            window.Model.PropertyChanged += (o, ev) =>
-            {
-                window.textYML.Text = ExternalWrapper.SerializeModel(window.Model);
-            };
+
+            var Model = window.Model;
+            Model.Path = @"C:\Test";
+            Model.Inverted = true;
+            Model.Masks.Add(".xslx");
+            Model.Masks.Add(".xls");
+            Model.Masks.Add(".xml");
+            Model.ExcludedFolders.Add("TEMP");
+            Model.ExcludedFolders.Add("BIN");
+
+            window.Model.PropertyChanged += (o, ev) => Refresh();
+        }
+
+        private void Refresh()
+        {
+            window.textYML.Text = ExternalWrapper.SerializeModel(window.Model);
+            window.treePreview.Prepare(() => ExternalWrapper.Prepare(window.Model));
         }
 
         public void Run()
         {
-            window.textYML.Text = ExternalWrapper.SerializeModel(window.Model);
+            Refresh();
             window.ShowDialog();
         }
     }
