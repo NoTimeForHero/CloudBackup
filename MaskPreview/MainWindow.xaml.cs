@@ -17,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using CloudBackuper;
+using Ookii.Dialogs.Wpf;
 
 namespace MaskPreview
 {
@@ -40,13 +41,9 @@ namespace MaskPreview
 
             folderButton.Click += (o, ev) =>
             {
-                // TODO: Заменить на нормальную либу диалогов вроде Ookii.Dialogs.Wpf или WindowsAPICodePack
-                using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
-                {
-                    System.Windows.Forms.DialogResult result = dialog.ShowDialog();
-                    if (result == System.Windows.Forms.DialogResult.Cancel) return;
-                    Model.Path = dialog.SelectedPath;
-                }
+                var dialog = new VistaFolderBrowserDialog { SelectedPath = Model.Path };
+                if (!dialog.ShowDialog() ?? false) return;
+                Model.Path = dialog.SelectedPath;
             };
         }
 
