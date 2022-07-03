@@ -55,7 +55,7 @@
                     <TextBox IsReadOnly="True" x:Name="textYML" />
                 </TabItem>
                 <TabItem Header="Тестовый архив">
-
+                    <local:PanelMakeZip x:Name="panelZip" />
                 </TabItem>
 
             </TabControl>

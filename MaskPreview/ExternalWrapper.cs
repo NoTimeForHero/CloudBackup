@@ -11,7 +11,16 @@ namespace MaskPreview
 {
     internal class ExternalWrapper
     {
-        public static string SerializeModel(MainWindow.DataModel model)
+        private MainWindow.DataModel model;
+        public ZipWrapper zipWrapper { get; }
+
+        public ExternalWrapper(MainWindow.DataModel model)
+        {
+            this.model = model;
+            zipWrapper = new ZipWrapper(model);
+        }
+
+        public string SerializeModel()
         {
             var cfgRoot = new Config();
             var cfgJob = new Config_Job
@@ -20,29 +29,30 @@ namespace MaskPreview
                 Name = "Example Job 1",
                 Path = model.Path
             };
-            var cfgMask = new Config_Masks
-            {
-                Masks = model.Masks.ToArray(),
-                DirectoriesExcluded = model.ExcludedFolders.ToArray(),
-                MasksExclude = model.Inverted
-            };
             cfgRoot.Jobs = new List<Config_Job> { cfgJob };
-            cfgJob.Masks = cfgMask;
+            cfgJob.Masks = GetMasks();
             return YamlTools.Serialize(cfgRoot);
         }
 
-        public static ViewNode Prepare(MainWindow.DataModel model)
+        public Lazy<ViewNode> GetFiles()
         {
             if (model.Path == null) return null;
-            var cfgMask = new Config_Masks
+            var path = model.Path;
+            var cfgMask = GetMasks();
+            return new Lazy<ViewNode>(() =>
+            {
+                var node = FileUtils.GetFilesInDirectory(path, cfgMask);
+                return Traverse(node);
+            });
+        }
+
+        protected Config_Masks GetMasks() =>
+            new Config_Masks
             {
                 Masks = model.Masks.ToArray(),
                 DirectoriesExcluded = model.ExcludedFolders.ToArray(),
                 MasksExclude = model.Inverted
             };
-            var node = FileUtils.GetFilesInDirectory(model.Path, cfgMask);
-            return Traverse(node);
-        }
 
         private static ViewNode Traverse(FileUtils.Node input)
         {
@@ -56,6 +66,55 @@ namespace MaskPreview
             if (merged.Length == 0) return null;
             output.Nodes = new ObservableCollection<ViewNode>(merged);
             return output;
+        }
+    }
+
+    internal class ZipWrapper : IDisposable
+    {
+        public const string defaultPassword = "example1234";
+        private readonly MainWindow.DataModel model;
+        private string filename;
+        private ZipTools zip;
+
+        public delegate void DelegateOnProgress(string state, int current, int total);
+        public delegate void DelegateOnComplete(string filename);
+
+        public event DelegateOnProgress OnProgress;
+        public event DelegateOnComplete OnComplete;
+
+        internal ZipWrapper(MainWindow.DataModel model)
+        {
+            this.model = model;
+        }
+
+        public async void Run()
+        {
+            zip?.Dispose();
+            await Task.Factory.StartNew(RunData, TaskCreationOptions.LongRunning);
+        }
+
+        private void RunData()
+        {
+            var path = model.Path;
+            var mask = new Config_Masks
+            {
+                Masks = model.Masks.ToArray(),
+                DirectoriesExcluded = model.ExcludedFolders.ToArray(),
+                MasksExclude = model.Inverted
+            };
+            var files = new List<string>();
+            FileUtils.GetFilesInDirectory(path, mask, flattenFiles: files);
+            filename = ZipTools.RandomFilename(prefix: "MaskPreview_");
+
+            zip = new ZipTools(path, files, defaultPassword);
+            zip.CreateZip((total, current, name) =>
+                OnProgress?.Invoke($"Архивация файла: {name}", current, total), filename);
+            OnComplete?.Invoke(filename);
+        }
+
+        public void Dispose()
+        {
+            zip.Dispose();
         }
     }
 

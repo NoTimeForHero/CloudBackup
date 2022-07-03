@@ -59,6 +59,9 @@
     <Compile Include="FileTreeViewer.xaml.cs">
       <DependentUpon>FileTreeViewer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PanelMakeZip.xaml.cs">
+      <DependentUpon>PanelMakeZip.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -77,6 +80,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="FileTreeViewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PanelMakeZip.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

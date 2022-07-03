@@ -21,7 +21,7 @@ namespace MaskPreview
     /// </summary>
     public partial class FileTreeViewer : UserControl
     {
-        protected Func<ViewNode> callback;
+        protected Lazy<ViewNode> lazyData;
 
         private enum State
         {
@@ -29,16 +29,16 @@ namespace MaskPreview
             DisplayData
         }
 
-        public void Prepare(Func<ViewNode> callback)
+        public void Update(Lazy<ViewNode> lazyData)
         {
-            this.callback = callback;
+            this.lazyData = lazyData;
             Toggle(State.NeedRefresh);
         }
 
         private void Build()
         {
             treeRoot.Items.Clear();
-            treeRoot.Items.Add(callback());
+            treeRoot.Items.Add(lazyData.Value);
             Toggle(State.DisplayData);
             if (treeRoot.ItemContainerGenerator.ContainerFromItem(treeRoot.Items[0])
                 is TreeViewItem control) control.IsExpanded = true;

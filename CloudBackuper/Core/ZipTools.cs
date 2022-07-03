@@ -9,7 +9,7 @@ using CompressionLevel = Ionic.Zlib.CompressionLevel;
 
 namespace CloudBackuper
 {
-    class ZipTools : IDisposable
+    public class ZipTools : IDisposable
     {
         protected readonly Logger logger = NLog.LogManager.GetCurrentClassLogger();
         protected readonly string pathToDirectory;
@@ -35,7 +35,7 @@ namespace CloudBackuper
 
         }
 
-        public string CreateZip(OnZipChanged callback=null)
+        public string CreateZip(OnZipChanged callback=null, string finalName = null)
         {
             var targetFile = RandomFilename();
             logger.Debug($"Создан временный файл: {targetFile}");
@@ -47,17 +47,18 @@ namespace CloudBackuper
             logger.Info($"Архив успешно создан: {targetFile}");
             if (password == null) return targetFile;
 
-            var encryptedFile = RandomFilename();
+            var encryptedFile = finalName ?? RandomFilename();
             EncryptFile(targetFile, encryptedFile, password, callback);
+            File.Delete(targetFile);
             filesToDelete.Add(encryptedFile);
 
             return encryptedFile;
         }
 
-        protected string RandomFilename(string extension = ".zip")
+        public static string RandomFilename(string extension = ".zip", string prefix = "")
         {
             string filename = Path.ChangeExtension(Path.GetRandomFileName(), extension);
-            string path = Path.Combine(Path.GetTempPath(), filename);
+            string path = Path.Combine(Path.GetTempPath(), prefix + filename);
             return path;
         }
 
@@ -123,7 +124,11 @@ namespace CloudBackuper
         public void Dispose()
         {
             logger.Debug($"Удаляем временный файлы: " + string.Join(", ", filesToDelete.Select(x => $"\"{x}\"")));
-            filesToDelete.ForEach(File.Delete);
+            foreach (var file in filesToDelete)
+            {
+                if (!File.Exists(file)) continue;
+                File.Delete(file);
+            }
         }
     }
 }
