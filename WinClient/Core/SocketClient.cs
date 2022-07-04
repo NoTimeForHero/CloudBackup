@@ -20,6 +20,7 @@ namespace WinClient
         private readonly CancellationToken token;
 
         public event Action<string> OnMessage;
+        public event Action onConnect;
 
         public SocketClient(Config config, ObserverVariable<string> status, CancellationToken? token = null)
         {
@@ -45,6 +46,7 @@ namespace WinClient
             {
                 status.Value = "Подключение";
                 await socket.ConnectAsync(uri, CancellationToken.None);
+                onConnect?.Invoke();
                 if (socket.State != WebSocketState.Open) throw new WebException($"Invalid WebSocketState: {socket.State}");
                 status.Value = "Подключено";
                 Program.Logger.Append("Установлено подключение по протоколу WebSocket к адресу: " + uri);

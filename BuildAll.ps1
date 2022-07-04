@@ -30,6 +30,7 @@ New-Item -ItemType Directory DIST\WebApp
 Copy-item -Force -Recurse -Verbose .\Plugin_AmazonS3\bin\Release\ .\DIST\plugins\amazon_s3
 Copy-item -Force -Recurse -Verbose .\Plugin_YandexDisk\bin\Release\ .\DIST\plugins\yandex_disk
 Copy-item -Force -Recurse -Verbose .\WinClient\bin\Release\* .\DIST\utils
+Copy-item -Force -Recurse -Verbose .\MaskPreview\bin\Release\* .\DIST\utils
 
 # Копируем фронтенд
 Copy-item -Force -Recurse -Verbose .\Frontend_v2\dist\* .\DIST\WebApp

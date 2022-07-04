@@ -38,6 +38,9 @@
     <ApplicationIcon>Resources\iconfinder_synced_512538.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CommandLine, Version=2.9.1.0, Culture=neutral, PublicKeyToken=5a870481e358d379, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommandLineParser.2.9.1\lib\net461\CommandLine.dll</HintPath>
+    </Reference>
     <Reference Include="Markdig, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Markdig.0.20.0\lib\netstandard2.0\Markdig.dll</HintPath>
     </Reference>
@@ -70,32 +73,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GuiController.cs" />
-    <Compile Include="PanelCompleted.cs">
+    <Compile Include="Core\GuiController.cs" />
+    <Compile Include="Core\TestController.cs" />
+    <Compile Include="GUI\DebugForm.cs" />
+    <Compile Include="GUI\PanelCompleted.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="PanelCompleted.Designer.cs">
+    <Compile Include="GUI\PanelCompleted.Designer.cs">
       <DependentUpon>PanelCompleted.cs</DependentUpon>
     </Compile>
-    <Compile Include="SocketClient.cs" />
-    <Compile Include="Config.cs" />
-    <Compile Include="FormAbout.cs">
+    <Compile Include="GUI\TrayIcon.cs" />
+    <Compile Include="Core\SocketClient.cs" />
+    <Compile Include="Core\Config.cs" />
+    <Compile Include="GUI\FormAbout.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormAbout.Designer.cs">
+    <Compile Include="GUI\FormAbout.Designer.cs">
       <DependentUpon>FormAbout.cs</DependentUpon>
     </Compile>
-    <Compile Include="FormStatus.cs">
+    <Compile Include="GUI\FormStatus.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FormStatus.Designer.cs">
+    <Compile Include="GUI\FormStatus.Designer.cs">
       <DependentUpon>FormStatus.cs</DependentUpon>
     </Compile>
-    <Compile Include="ObserverVariable.cs" />
-    <Compile Include="PanelProgress.cs">
+    <Compile Include="Core\ObserverVariable.cs" />
+    <Compile Include="GUI\PanelProgress.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="PanelProgress.Designer.cs">
+    <Compile Include="GUI\PanelProgress.Designer.cs">
       <DependentUpon>PanelProgress.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
@@ -105,18 +111,18 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Api.cs" />
+    <Compile Include="Core\Api.cs" />
     <Compile Include="Win32.cs" />
-    <EmbeddedResource Include="FormAbout.resx">
+    <EmbeddedResource Include="GUI\FormAbout.resx">
       <DependentUpon>FormAbout.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FormStatus.resx">
+    <EmbeddedResource Include="GUI\FormStatus.resx">
       <DependentUpon>FormStatus.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="PanelCompleted.resx">
+    <EmbeddedResource Include="GUI\PanelCompleted.resx">
       <DependentUpon>PanelCompleted.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="PanelProgress.resx">
+    <EmbeddedResource Include="GUI\PanelProgress.resx">
       <DependentUpon>PanelProgress.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -144,6 +150,7 @@
     <None Include="Resources\icons8_minimize_window_48.png" />
     <None Include="Resources\icons8_close_window_48.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions />
 </Project>
