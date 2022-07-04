@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CommandLine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WinClient.Api;
@@ -37,10 +38,23 @@ namespace WinClient
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            string jobToRun = null;
+
+            if (args.Length > 0)
+            {
+                var parsed = Parser.Default.ParseArguments<Config>(args);
+                var cliConfig = parsed.Value;
+                if (cliConfig != null)
+                {
+                    config.no_background = true;
+                    config.shutdown_computer = cliConfig.shutdown_computer;
+                    config.close_on_complete = cliConfig.close_on_complete;
+                    if (cliConfig.debug_mode) config.debug_mode = true;
+                    jobToRun = cliConfig.run_job;
+                }
+            }
 
             var status = new ObserverVariable<string>("Ожидание");
-            config.shutdown_computer = null;
-            config.no_background = true;
 
             GuiController controller = new GuiController(config);
             var watcher = new SocketClient(config, status);
@@ -60,10 +74,12 @@ namespace WinClient
                 icon.ItemDebug.Click += (o, ev) => TestController.Test(controller);
             }
 
-            if (args.Length == 2 && args[0] == "RunJob")
+
+            watcher.OnConnected += () =>
             {
-                WebApi.startJob(config.urlStartJob, args[1]).GetAwaiter().GetResult();
-            }
+                if (jobToRun == null) return;
+                WebApi.startJob(config.urlStartJob, jobToRun).GetAwaiter().GetResult();
+            };
 
             if (!config.no_background) icon.Run();
             Application.Run();

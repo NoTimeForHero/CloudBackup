@@ -18,6 +18,7 @@ namespace WinClient
         protected readonly List<Timer> timers = new List<Timer>();
         protected UserControl currentPanel;
 
+        protected readonly Config config;
         protected readonly bool debugMode;
         protected readonly TimeSpan? configRemain;
         protected TimeSpan remain;
@@ -38,6 +39,7 @@ namespace WinClient
 
         public FormStatus(Config config)
         {
+            this.config = config;
             InitializeComponent();
             Instance = this;
             Text = Program.Title;
@@ -120,6 +122,7 @@ namespace WinClient
                         completedPanel.lblTimer.Text = remain.ToString();
                     }
                     TogglePanel(completedPanel);
+                    if (config.close_on_complete) Application.Exit();
                     return;
             }
 

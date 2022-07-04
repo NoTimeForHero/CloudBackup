@@ -28,10 +28,10 @@ namespace WinClient.Core
                     Thread.Sleep(100);
                 }
                 controller.OnMessage(new Api.Message(MessageType.Completed).Json);
-                Thread.Sleep(5000);
-                controller.OnMessage(new Api.Message(MessageType.Started).Json);
-                Thread.Sleep(2000);
-                controller.OnMessage(new Api.Message(MessageType.Completed).Json);
+                //Thread.Sleep(5000);
+                //controller.OnMessage(new Api.Message(MessageType.Started).Json);
+                //Thread.Sleep(2000);
+                //controller.OnMessage(new Api.Message(MessageType.Completed).Json);
             }).Start();
         }
     }
