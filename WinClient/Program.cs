@@ -39,6 +39,8 @@ namespace WinClient
             Application.SetCompatibleTextRenderingDefault(false);
 
             var status = new ObserverVariable<string>("Ожидание");
+            config.shutdown_computer = null;
+            config.no_background = true;
 
             GuiController controller = new GuiController(config);
             var watcher = new SocketClient(config, status);
@@ -46,7 +48,7 @@ namespace WinClient
             watcher.OnMessage += controller.OnMessage;
             watcher.StartAsync();
 
-            var icon = new TrayIcon().Run();
+            var icon = new TrayIcon();
             icon.ItemAbout.Click += (o, ev) => new FormAbout().Show();
             icon.ItemExit.Click += (o, ex) => exitConfirm();
 
@@ -60,19 +62,11 @@ namespace WinClient
 
             if (args.Length == 2 && args[0] == "RunJob")
             {
-                startJob(config.urlStartJob, args[1]).GetAwaiter().GetResult();
+                WebApi.startJob(config.urlStartJob, args[1]).GetAwaiter().GetResult();
             }
 
+            if (!config.no_background) icon.Run();
             Application.Run();
-        }
-
-        private async Task startJob(string url, string name)
-        {
-            var client = new HttpClient();
-            name = WebUtility.UrlEncode(name);
-            var uri = new Uri(string.Format(url, name));
-            var response = await client.PostAsync(uri, new StringContent(string.Empty));
-            response.EnsureSuccessStatusCode();
         }
 
         public static bool exitConfirm()

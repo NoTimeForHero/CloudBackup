@@ -75,6 +75,7 @@
   <ItemGroup>
     <Compile Include="Core\GuiController.cs" />
     <Compile Include="Core\TestController.cs" />
+    <Compile Include="Core\WebApi.cs" />
     <Compile Include="GUI\DebugForm.cs" />
     <Compile Include="GUI\PanelCompleted.cs">
       <SubType>UserControl</SubType>

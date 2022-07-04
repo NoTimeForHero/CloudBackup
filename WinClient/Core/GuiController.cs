@@ -35,9 +35,15 @@ namespace WinClient
                 form.FormClosing += (o, ev) =>
                 {
                     if (ev.CloseReason != CloseReason.UserClosing) return;
+                    if (config.no_background)
+                    {
+                        Application.Exit();
+                        return;
+                    }
                     ev.Cancel = true;
                     form.Hide();
                 };
+                if (config.no_background) form.Visible = true;
                 waiter.Set();
                 Application.Run(form);
             }).Start();
@@ -46,7 +52,7 @@ namespace WinClient
 
         private void createDebugForm(Form targetForm)
         {
-            var debugForm = new DebugForm(targetForm);
+            var debugForm = new DebugForm(targetForm, this);
             debugForm.Run();
         }
 

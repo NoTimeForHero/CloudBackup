@@ -14,6 +14,14 @@ namespace WinClient
         public string urlStartJob { get; set; }
         public TimeSpan? shutdown_computer { get; set; }
 
+        /// <summary>
+        /// Если true, то нет иконки в трее и кнопка закрытия закрывает всё приложение
+        /// </summary>
+        public bool no_background { get; set; }
+
+        public bool exit_after_complete { get; set; }
+
+
         public static Config Default => new Config
         {
             topmost = true,

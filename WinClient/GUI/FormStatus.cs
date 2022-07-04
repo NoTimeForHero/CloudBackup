@@ -42,7 +42,11 @@ namespace WinClient
             Instance = this;
             Text = Program.Title;
             btnMinimize.Click += (o, ev) => WindowState = FormWindowState.Minimized;
-            btnClose.Click += (o, ev) => Program.exitConfirm();
+            btnClose.Click += (o, ev) =>
+            {
+                if (config.no_background) Close();
+                else Program.exitConfirm();
+            };
             lblFormTitle.Text = Text;
             lblFormTitle.MouseDown += (o, ev) => Win32.DragWindow(Handle);
             createRoundedBorder(20, 3);

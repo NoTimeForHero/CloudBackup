@@ -6,25 +6,28 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinClient.Core;
 using Timer = System.Windows.Forms.Timer;
 
 namespace WinClient.GUI
 {
     internal class DebugForm
     {
+        private GuiController guiController;
         private Form formControl;
         private Form targetForm;
 
-        public DebugForm(Form targetForm)
+        public DebugForm(Form targetForm, GuiController guiController)
         {
             this.targetForm = targetForm;
+            this.guiController = guiController;
         }
 
         private void Initialize(Form targetForm)
         {
             formControl = new Form
             {
-                Size = new Size(300, 400),
+                Size = new Size(340, 400),
                 Text = "Управление формой состояния",
                 MinimizeBox = false,
                 MaximizeBox = false
@@ -33,7 +36,7 @@ namespace WinClient.GUI
             TableLayoutPanel tbl = new TableLayoutPanel
             {
                 RowCount = 2,
-                ColumnCount = 4,
+                ColumnCount = 5,
                 Dock = DockStyle.Fill
             };
             formControl.Controls.Add(tbl);
@@ -74,9 +77,20 @@ namespace WinClient.GUI
                 UpdateLog();
             };
 
+            Button btnRun = new Button
+            {
+                Dock = DockStyle.Fill,
+                Text = "Run"
+            };
+            btnRun.Click += (o, ev) =>
+            {
+                TestController.Test(guiController);
+            };
+
             tbl.Controls.Add(btnHide);
             tbl.Controls.Add(btnShow);
             tbl.Controls.Add(btnClear);
+            tbl.Controls.Add(btnRun);
 
             tbl.Controls.Add(txtLog);
             tbl.SetRow(txtLog, 1);
