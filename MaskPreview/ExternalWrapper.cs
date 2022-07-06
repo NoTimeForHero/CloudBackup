@@ -12,6 +12,7 @@ namespace MaskPreview
     internal class ExternalWrapper
     {
         private MainWindow.DataModel model;
+        private Config config;
         public ZipWrapper zipWrapper { get; }
 
         public ExternalWrapper(MainWindow.DataModel model)
@@ -46,13 +47,33 @@ namespace MaskPreview
             });
         }
 
-        protected Config_Masks GetMasks() =>
-            new Config_Masks
+        public string[] GetSectionsInFile(string ymlString)
+        {
+            config = YamlTools.Deserialize<Config>(ymlString);
+            return config.Jobs.Select(x => x.Name).ToArray();
+        }
+
+        public void SetSection(string name)
+        {
+            var section = config?.Jobs.FirstOrDefault(x => x.Name == name);
+            var masks = section?.Masks?.Masks ?? Array.Empty<string>();
+            var folders = section?.Masks?.DirectoriesExcluded ?? Array.Empty<string>();
+            model.Path = section?.Path ?? string.Empty;
+            model.Inverted = section?.Masks?.MasksExclude ?? model.Inverted;
+            model.Masks = new ObservableCollection<string>(masks);
+            model.ExcludedFolders = new ObservableCollection<string>(folders);
+            Console.WriteLine("XXXX");
+        }
+
+        protected Config_Masks GetMasks()
+        {
+            return new Config_Masks
             {
                 Masks = model.Masks.ToArray(),
                 DirectoriesExcluded = model.ExcludedFolders.ToArray(),
                 MasksExclude = model.Inverted
             };
+        }
 
         private static ViewNode Traverse(FileUtils.Node input)
         {

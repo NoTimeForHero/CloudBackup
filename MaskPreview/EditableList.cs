@@ -29,6 +29,7 @@ namespace MaskPreview
             }
         }
 
+        // TODO: Биндинг, когда обновился весь список ViewModel
         public void DumpItemBinding(ObservableCollection<string> target, Action<string[]> onChange)
         {
             target.CollectionChanged += (o, ev) => DisplayItems = target.ToArray();

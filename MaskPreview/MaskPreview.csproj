@@ -62,6 +62,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="EntryCombo.cs" />
     <Compile Include="FileTreeViewer.xaml.cs">
       <DependentUpon>FileTreeViewer.xaml</DependentUpon>
     </Compile>

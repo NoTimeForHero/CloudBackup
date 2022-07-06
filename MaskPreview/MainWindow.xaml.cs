@@ -39,6 +39,11 @@ namespace MaskPreview
             listMasks.DumpItemBinding(Model.Masks, (data) => Model.Masks = new ObservableCollection<string>(data));
             listFolders.DumpItemBinding(Model.ExcludedFolders, (data) => Model.ExcludedFolders = new ObservableCollection<string>(data));
 
+            var cmdCopy = textYML.ContextMenu?.Items
+                .OfType<MenuItem>()
+                .FirstOrDefault(x => (x.Tag is string strTag) && strTag == "Copy");
+            if (cmdCopy != null) cmdCopy.Click += (o, ev) => Clipboard.SetText(textYML.Text);
+
             folderButton.Click += (o, ev) =>
             {
                 var dialog = new VistaFolderBrowserDialog { SelectedPath = Model.Path };

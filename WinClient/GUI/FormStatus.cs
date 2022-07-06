@@ -54,7 +54,7 @@ namespace WinClient
             createRoundedBorder(20, 3);
 
             debugMode = config.debug_mode;
-            configRemain = config.shutdown_computer;
+            if (!config.close_on_complete) configRemain = config.shutdown_computer;
 
             if (configRemain.HasValue)
             {

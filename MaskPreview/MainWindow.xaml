@@ -21,11 +21,14 @@
             </Grid.RowDefinitions>
 
 
-            <StackPanel Grid.Row="0" Grid.ColumnSpan="2"
-                        Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
-                <Label Margin="0,0,20,0">Директория с файлами: </Label>
-                <TextBox MinWidth="500" x:Name="folderValue" IsReadOnly="True"/>
-                <Button Padding="15,0" x:Name="folderButton">...</Button>
+            <StackPanel  Grid.Row="0" Grid.ColumnSpan="2">
+                <StackPanel
+                    Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
+                    <Label Margin="0,0,20,0">Директория с файлами:</Label>
+                    <TextBox MinWidth="500" x:Name="folderValue" IsReadOnly="True"/>
+                    <Button Padding="15,0" x:Name="folderButton">...</Button>
+                </StackPanel>
+                <local:EntryCombo HorizontalAlignment="Center" MinWidth="500" x:Name="comboConfigurations" />
             </StackPanel>
 
             <GroupBox 
@@ -52,7 +55,13 @@
                     <local:FileTreeViewer x:Name="treePreview" />
                 </TabItem>
                 <TabItem Header="Конфигурация YML">
-                    <TextBox IsReadOnly="True" x:Name="textYML" />
+                    <TextBox IsReadOnly="True" x:Name="textYML">
+                        <TextBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Копировать" Tag="Copy" />
+                            </ContextMenu>
+                        </TextBox.ContextMenu>
+                    </TextBox>
                 </TabItem>
                 <TabItem Header="Тестовый архив">
                     <local:PanelMakeZip x:Name="panelZip" />

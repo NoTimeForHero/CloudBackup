@@ -37,6 +37,8 @@ namespace CloudBackuper.Utils
             }
         }
 
+        public static T Deserialize<T>(string ymlString) => Deserialize<T>(ymlString, out string _);
+
         public static T Deserialize<T>(string ymlString, out string json)
         {
             using (var reader = new StringReader(ymlString))

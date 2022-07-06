@@ -163,4 +163,8 @@
       <UserProperties config_1json__JsonSchema="" />
     </VisualStudio>
   </ProjectExtensions>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
 </Project>
