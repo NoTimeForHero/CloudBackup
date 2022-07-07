@@ -36,12 +36,16 @@ namespace MaskPreview
             AppDomain.CurrentDomain.UnhandledException += (o, ev) => UnhandledException(ev.ExceptionObject as Exception);
             TaskScheduler.UnobservedTaskException += (o, ev) => UnhandledException(ev.Exception);
 
-            var defaultPath = @"..\config.yml";
-            if (File.Exists(defaultPath))
-            {
-                var config = File.ReadAllText(defaultPath);
-                window.comboConfigurations.TypedItems = wrapper.GetSectionsInFile(config);
-            }
+            bool loaded = TryLoadConfig(@"..\config.yml");
+            if (!loaded) TryLoadConfig(@"..\..\..\CloudBackuper\config.yml");
+        }
+
+        private bool TryLoadConfig(string path)
+        {
+            if (!File.Exists(path)) return false;
+            var config = File.ReadAllText(path);
+            window.comboConfigurations.TypedItems = wrapper.GetSectionsInFile(config);
+            return true;
         }
 
         private void Combo_FileSelect()
@@ -51,8 +55,7 @@ namespace MaskPreview
             dialog.Filter = "Config YML|*.yml";
             dialog.InitialDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".";
             if (dialog.ShowDialog() != true) return;
-            var config = File.ReadAllText(dialog.FileName);
-            window.comboConfigurations.TypedItems = wrapper.GetSectionsInFile(config);
+            TryLoadConfig(dialog.FileName);
         }
 
         private void UnhandledException(Exception ex) => MessageBox.Show(window, ex?.ToString(), "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);

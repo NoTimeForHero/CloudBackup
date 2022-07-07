@@ -60,8 +60,8 @@ namespace MaskPreview
             var folders = section?.Masks?.DirectoriesExcluded ?? Array.Empty<string>();
             model.Path = section?.Path ?? string.Empty;
             model.Inverted = section?.Masks?.MasksExclude ?? model.Inverted;
-            model.Masks = new ObservableCollection<string>(masks);
-            model.ExcludedFolders = new ObservableCollection<string>(folders);
+            model.Masks = masks.ToList();
+            model.ExcludedFolders = folders.ToList();
             Console.WriteLine("XXXX");
         }
 

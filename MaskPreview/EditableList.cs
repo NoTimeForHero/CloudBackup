@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,9 +22,10 @@ namespace MaskPreview
         public event EventHandler<ItemChangeEvent> ItemChanged;
         //public string[] DisplayItems => Items.OfType<TextBlock>().Select(x => x.Text).ToArray();
         // public string[] DisplayItems => Items.OfType<string>().ToArray();
-        public string[] DisplayItems
+
+        public List<string> DisplayItems
         {
-            get => Items.OfType<string>().ToArray();
+            get => Items.OfType<string>().ToList();
             set
             {
                 Items.Clear();
@@ -29,11 +33,43 @@ namespace MaskPreview
             }
         }
 
-        // TODO: Биндинг, когда обновился весь список ViewModel
-        public void DumpItemBinding(ObservableCollection<string> target, Action<string[]> onChange)
+        public void DumpItemBinding(string propertyName)
         {
-            target.CollectionChanged += (o, ev) => DisplayItems = target.ToArray();
-            ItemChanged += (o, ev) => onChange(DisplayItems);
+            if (DataContext == null) throw new InvalidOperationException("DataContext is null!");
+            if (!(DataContext is INotifyPropertyChanged model))
+                throw new InvalidOperationException("DataContext is not INotifyPropertyChanged!");
+            var field = DataContext.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
+            if (field == null) throw new InvalidOperationException($"Field not found: {propertyName}");
+
+            var isLocked = false;
+
+            model.PropertyChanged += (o, ev) =>
+            {
+                if (ev.PropertyName != propertyName) return;
+                if (isLocked) return;
+                try
+                {
+                    DisplayItems = (List<string>)field.GetValue(model);
+                    isLocked = true;
+                }
+                finally
+                {
+                    isLocked = false;
+                }
+            };
+            ItemChanged += (o, ev) =>
+            {
+                if (isLocked) return;
+                try
+                {
+                    isLocked = true;
+                    field.SetValue(model, DisplayItems);
+                }
+                finally
+                {
+                    isLocked = false;
+                }
+            };
         }
 
         public class ItemChangeEvent : EventArgs

@@ -36,8 +36,8 @@ namespace MaskPreview
 
             chkInvertMask.SetBinding(ToggleButton.IsCheckedProperty, nameof(DataModel.Inverted));
             folderValue.SetBinding(TextBox.TextProperty, nameof(DataModel.Path));
-            listMasks.DumpItemBinding(Model.Masks, (data) => Model.Masks = new ObservableCollection<string>(data));
-            listFolders.DumpItemBinding(Model.ExcludedFolders, (data) => Model.ExcludedFolders = new ObservableCollection<string>(data));
+            listMasks.DumpItemBinding(nameof(DataModel.Masks));
+            listFolders.DumpItemBinding(nameof(DataModel.ExcludedFolders));
 
             var cmdCopy = textYML.ContextMenu?.Items
                 .OfType<MenuItem>()
@@ -56,13 +56,13 @@ namespace MaskPreview
         {
             private bool inverted;
             private string path;
-            private ObservableCollection<string> masks = new ObservableCollection<string>();
-            private ObservableCollection<string> excludedFolders = new ObservableCollection<string>();
+            private List<string> masks = new List<string>();
+            private List<string> excludedFolders = new List<string>();
 
             public bool Inverted { get => inverted; set => SetField(ref inverted, value); }
             public string Path { get => path; set => SetField(ref path, value); }
-            public ObservableCollection<string> Masks { get => masks; set => SetField(ref masks, value); }
-            public ObservableCollection<string> ExcludedFolders { get => excludedFolders; set => SetField(ref excludedFolders, value); }
+            public List<string> Masks { get => masks; set => SetField(ref masks, value); }
+            public List<string> ExcludedFolders { get => excludedFolders; set => SetField(ref excludedFolders, value); }
         }
     }
 }
