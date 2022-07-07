@@ -13,6 +13,7 @@ namespace MaskPreview
     {
         private MainWindow.DataModel model;
         private Config config;
+        private Config_Job activeSection;
         public ZipWrapper zipWrapper { get; }
 
         public ExternalWrapper(MainWindow.DataModel model)
@@ -24,7 +25,7 @@ namespace MaskPreview
         public string SerializeModel()
         {
             var cfgRoot = new Config();
-            var cfgJob = new Config_Job
+            var cfgJob = activeSection ?? new Config_Job
             {
                 Id = "example_job_1",
                 Name = "Example Job 1",
@@ -56,6 +57,7 @@ namespace MaskPreview
         public void SetSection(string name)
         {
             var section = config?.Jobs.FirstOrDefault(x => x.Name == name);
+            activeSection = section;
             var masks = section?.Masks?.Masks ?? Array.Empty<string>();
             var folders = section?.Masks?.DirectoriesExcluded ?? Array.Empty<string>();
             model.Path = section?.Path ?? string.Empty;

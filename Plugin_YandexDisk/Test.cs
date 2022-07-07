@@ -21,8 +21,8 @@ namespace Plugin_YandexDisk
             LogManager.Configuration = config;
 
             var token = Environment.GetEnvironmentVariable("YANDEX_DISK_TOKEN", EnvironmentVariableTarget.User);
-            token = "lolasdiw";
-            var uploadDir = "/test1";
+            //token = "test";
+            var uploadDir = "/test1/test2/test3";
             dynamic settings = JsonConvert.SerializeObject(new Settings { OAuthToken = token, UploadDir = uploadDir });
             settings = JsonConvert.DeserializeObject<JObject>(settings);
 

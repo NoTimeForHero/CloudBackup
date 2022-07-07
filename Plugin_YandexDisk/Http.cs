@@ -34,20 +34,51 @@ namespace Plugin_YandexDisk
             client.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
         }
 
-        private void EnsureSuccess(HttpResponseMessage response, string body)
+        private ErrorInfo EnsureSuccess(HttpResponseMessage response, string body, string ignoredError = null)
         {
             try
             {
                 response.EnsureSuccessStatusCode();
+                return null;
             }
             catch (HttpRequestException ex)
             {
+                if (body.TryParse<ErrorInfo>(out var errInfo)
+                    && ignoredError != null
+                    && ignoredError == errInfo.error)
+                {
+                    errInfo.Exception = ex;
+                    return errInfo;
+                }
                 logger.Warn($"Ошибка: {ex.Message}");
                 var headers = response.Content.Headers.Select(x => $"{x.Key}: {x.Value.Join(", ")}").Join("\n");
                 logger.Warn($"Заголовки:\n{headers}");
                 logger.Warn($"Содержимое ответа:\n{body}");
                 throw;
             }
+        }
+
+        private async Task MakeFolder(string path)
+        {
+            var route = API_URL + "/resources";
+            route += "?path=" + WebUtility.UrlEncode(path);
+            logger.Info($"HTTP запрос ({nameof(MakeFolder)}):\n{route}");
+            var requestUri = new Uri(route);
+            var response = await client.PutAsync(requestUri, new StringContent(string.Empty));
+            EnsureSuccess(response, await response.Content.ReadAsStringAsync(), "DiskPathPointsToExistentDirectoryError");
+        }
+
+
+        private async Task BuildFolderTree(string path)
+        {
+            var parts = path.Split('/')
+                .Where(x => x.Length > 0) // Удаляем дубляжи
+                .Reverse().Skip(1).Reverse() // Удаляем имя файла на конце
+                .ToArray();
+            parts = parts
+                .Select((_, i) => parts.Take(i + 1).Join("/")) // Строим роуты типа /a, a/b, /a/b/c
+                .ToArray();
+            foreach (var part in parts) await MakeFolder(part);
         }
 
         public async Task<string> GetUploadLink(string path, bool overwrite = false)
@@ -57,7 +88,12 @@ namespace Plugin_YandexDisk
             logger.Info($"HTTP запрос ({nameof(GetUploadLink)}):\n{fullPath}");
             var response = await client.GetAsync(requestUri);
             var responseString = await response.Content.ReadAsStringAsync();
-            EnsureSuccess(response, responseString);
+            var err = EnsureSuccess(response, responseString, "DiskPathDoesntExistsError");
+            if (err != null)
+            {
+                await BuildFolderTree(path);
+                return await GetUploadLink(path, overwrite);
+            }
             var json = JsonConvert.DeserializeObject<JObject>(responseString);
             var href = json["href"]?.ToObject<string>();
             if (href == null) throw new InvalidOperationException("HREF is null!");
@@ -96,6 +132,14 @@ namespace Plugin_YandexDisk
         public void Dispose()
         {
             client?.Dispose();
+        }
+
+        public class ErrorInfo
+        {
+            public Exception Exception { get; set; }
+            public string message { get; set; }
+            public string description { get; set; }
+            public string error { get; set; }
         }
     }
 
