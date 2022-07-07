@@ -36,8 +36,8 @@ namespace MaskPreview
             AppDomain.CurrentDomain.UnhandledException += (o, ev) => UnhandledException(ev.ExceptionObject as Exception);
             TaskScheduler.UnobservedTaskException += (o, ev) => UnhandledException(ev.Exception);
 
-            bool loaded = TryLoadConfig(@"..\config.yml");
-            if (!loaded) TryLoadConfig(@"..\..\..\CloudBackuper\config.yml");
+            bool loaded = TryLoadConfig(@"..\userdata\config.yml");
+            if (!loaded) TryLoadConfig(@"..\..\..\CloudBackuper\userdata\config.yml");
         }
 
         private bool TryLoadConfig(string path)

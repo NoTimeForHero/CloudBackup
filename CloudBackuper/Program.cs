@@ -78,7 +78,7 @@ namespace CloudBackuper
             var debugJson = DEBUG_MODE ? "config.debug.json" : null;
 
             // TODO: Переписать по нормальному?
-            var config = YamlTools.DeserializeFile<Config>(Information.AppPath, Information.Filename_Config, debugJson);
+            var config = YamlTools.DeserializeFile<Config>(Information.UserDataPath, Information.Filename_Config, debugJson);
 
             config.HostingURI = config.HostingURI ?? "http://localhost:3000";
             //var yaml = new SerializerBuilder().Build().Serialize(config);
@@ -86,7 +86,7 @@ namespace CloudBackuper
             Logging.applyLoggingSettings(config.Logging);
             container.RegisterInstance(config);
 
-            var jsEngine = new JSEngine(Path.Combine(Information.AppPath, Information.Filename_Script));
+            var jsEngine = new JSEngine(Path.Combine(Information.UserDataPath, Information.Filename_Script));
             container.RegisterInstance(jsEngine);
 
             container.TryDispose<JobController>();

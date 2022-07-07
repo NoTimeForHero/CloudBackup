@@ -12,11 +12,13 @@ namespace CloudBackuper.Utils
     {
         public const string Filename_Config = "config.yml";
         public const string Filename_Script = "scripts.js";
+        public const string UserData_Name = "userdata";
 
         public static readonly string Title;
         public static readonly string Description;
         // private string AppPath => Path.GetDirectoryName(Assembly.GetAssembly(GetType()).Location);
         public static readonly string AppPath;
+        public static readonly string UserDataPath;
 
         static Information()
         {
@@ -24,6 +26,7 @@ namespace CloudBackuper.Utils
             Description = Assembly.GetAssembly(typeof(Program)).GetDescription("CloudBackup Description");;
             AppPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             if (AppPath == null) throw new ArgumentException("Invalid path to assembly!");
+            UserDataPath = Path.Combine(AppPath, UserData_Name);
         }
     }
 }

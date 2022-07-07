@@ -19,7 +19,6 @@ Copy-item -Force -Recurse -Verbose .\ServiceRunner\bin\Release\* .\DIST\
 Remove-Item -ErrorAction Ignore -Recurse -Force DIST\plugins
 Remove-Item -ErrorAction Ignore -Recurse -Force DIST\utils
 Remove-Item -ErrorAction Ignore -Recurse -Force DIST\WebApp
-Remove-Item -ErrorAction Ignore -Recurse -Force DIST\WebApp
 
 # Создаём основные каталоги
 New-Item -ItemType Directory DIST\plugins
@@ -49,4 +48,9 @@ Remove-Item -ErrorAction Ignore -Recurse -Include Debug.zip DIST
 Remove-Item -ErrorAction Ignore -Recurse -Include config.json DIST 
 Remove-Item -ErrorAction Ignore -Recurse -Include config.yml DIST 
 # Восстанавливаем конфиг
-Copy-item .\DIST\config_example.yml .\DIST\config.yml 
+Copy-item .\DIST\userdata\config_example.yml .\DIST\userdata\config.yml 
+
+
+# Ожидание пользовательского ввода
+Write-Host -NoNewLine 'Press any key to continue...';
+$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
