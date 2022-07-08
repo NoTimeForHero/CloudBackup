@@ -111,6 +111,46 @@ namespace Tests
         }
 
         [TestMethod]
+        public void IgnoredDirectories_CaseInsensetive()
+        {
+            Config_Masks masks = new Config_Masks
+            {
+                MasksExclude = false,
+                Masks = new[] { ".xml" },
+                DirectoriesExcluded = new[] { "FoLdEr2" },
+            };
+
+            FileUtils.GetDirectories getDirectories = path =>
+            {
+                switch (path)
+                {
+                    case "root":
+                        return new[] { "folder1", "folder2" };
+                    default:
+                        return new string[] { };
+                }
+            };
+
+            FileUtils.GetFiles getFiles = path =>
+            {
+                Console.WriteLine($"getFiles({path})");
+                switch (path)
+                {
+                    case @"root\folder1":
+                        return new[] { "file1.xml", "file2.xml" };
+                    case @"root\folder2":
+                        return new[] { "file3.xml" };
+                    default:
+                        return new string[] { };
+                }
+            };
+
+            var flattenFiles = new List<string>();
+            FileUtils.GetFilesInDirectory(@"root", masks, getFiles, getDirectories, flattenFiles: flattenFiles);
+            CollectionAssert.AreEqual(new[] { "file1.xml", "file2.xml" }, flattenFiles.ToArray());
+        }
+
+        [TestMethod]
         public void RandomDeep()
         {
             var masks = new[] { ".xlsx", ".docx" };

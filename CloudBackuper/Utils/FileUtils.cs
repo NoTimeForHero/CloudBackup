@@ -27,10 +27,12 @@ namespace CloudBackuper
             if (node == null) node = new Node { Name = Path.GetFileName(path), FullPath = path };
 
             var directories = getDirectories(path);
+            var excludedDirs = (masks.DirectoriesExcluded ?? Array.Empty<string>())
+                .Select(x => x.ToLower()).ToArray();
             foreach (var dir in directories)
             {
                 var dirName = Path.GetFileName(dir);
-                if (masks.DirectoriesExcluded != null && masks.DirectoriesExcluded.Contains(dirName)) continue;
+                if (excludedDirs.Contains(dirName.ToLower())) continue;
 
                 var dirPath = Path.Combine(path, dir);
                 var dirNode = new Node { Name = dirName, FullPath = dirPath };
