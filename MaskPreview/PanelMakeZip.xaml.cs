@@ -49,12 +49,14 @@ namespace MaskPreview
         {
             Toggle(State.Prepare);
             this.zipWrapper = zipWrapper;
-            lblPassword.Text = ZipWrapper.defaultPassword;
             zipWrapper.OnProgress += ZipWrapper_OnProgress;
             zipWrapper.OnComplete += ZipWrapper_OnComplete;
             btnCreateZip.Click += BtnCreateZip_Click;
-            btnOpenZip.Click += BtnOpenZip_Click;
             btnDeleteZip.Click += BtnDeleteZip_Click;
+            btnOpenZip.Click += (o, ev) => Process.Start(Filename);
+            btnOpenTEMP.Click += (o, ev) =>
+                Process.Start("explorer.exe", $"/e ,/select, \"{Filename}\"");
+            btnCancel.Click += (o, ev) => zipWrapper.Cancel();
         }
 
         private void BtnDeleteZip_Click(object sender, RoutedEventArgs e)
@@ -63,16 +65,17 @@ namespace MaskPreview
             Toggle(State.Prepare);
         }
 
-        private void BtnOpenZip_Click(object sender, RoutedEventArgs e)
-        {
-            Process.Start("explorer.exe", $"/e ,/select, \"{Filename}\"");
-        }
-
-        private void ZipWrapper_OnComplete(string filename)
+        private void ZipWrapper_OnComplete(bool success, string filename)
         {
             if (!Dispatcher.CheckAccess()) // CheckAccess returns true if you're on the dispatcher thread
             {
-                Dispatcher.Invoke(() => ZipWrapper_OnComplete(filename));
+                Dispatcher.Invoke(() => ZipWrapper_OnComplete(success, filename));
+                return;
+            }
+
+            if (!success)
+            {
+                Toggle(State.Prepare);
                 return;
             }
             Toggle(State.Completed);

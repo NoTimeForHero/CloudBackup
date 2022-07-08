@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using NLog;
 using Ionic.Zip;
 using CompressionLevel = Ionic.Zlib.CompressionLevel;
@@ -15,12 +16,13 @@ namespace CloudBackuper
         protected readonly string pathToDirectory;
         protected readonly List<string> files;
         protected readonly string password;
+        protected CancellationTokenSource cancellation;
 
         protected readonly List<string> filesToDelete = new List<string>();
 
         public delegate void OnZipChanged(int total, int currentIndex, string currentName);
 
-        public ZipTools(string pathToDirectory, List<string> files, string password)
+        public ZipTools(string pathToDirectory, List<string> files, string password = null)
         {
             if (!Directory.Exists(pathToDirectory))
             {
@@ -35,14 +37,20 @@ namespace CloudBackuper
 
         }
 
+        public void Cancel()
+        {
+            cancellation?.Cancel();
+        }
+
         public string CreateZip(OnZipChanged callback=null, string finalName = null)
         {
             var targetFile = RandomFilename();
+            if (password == null && finalName != null) targetFile = finalName;
             logger.Debug($"Создан временный файл: {targetFile}");
 
             logger.Debug($"Файлов подходит по маске: {files.Count}");
+            cancellation = new CancellationTokenSource();
             WriteToFile(targetFile, pathToDirectory, files, callback);
-            filesToDelete.Add(targetFile);
 
             logger.Info($"Архив успешно создан: {targetFile}");
             if (password == null) return targetFile;
@@ -50,7 +58,6 @@ namespace CloudBackuper
             var encryptedFile = finalName ?? RandomFilename();
             EncryptFile(targetFile, encryptedFile, password, callback);
             File.Delete(targetFile);
-            filesToDelete.Add(encryptedFile);
 
             return encryptedFile;
         }
@@ -68,6 +75,8 @@ namespace CloudBackuper
         {
             using (var zip = new ZipFile(fileOutput))
             {
+                // TODO: Подробный процесс шифрования файла?
+                // TODO: Возможность отмены шифрования
                 callback(1, 1, "шифрование");
                 zip.CompressionLevel = CompressionLevel.None;
                 zip.Encryption = EncryptionAlgorithm.WinZipAes256;
@@ -76,6 +85,7 @@ namespace CloudBackuper
                 zip.AddFile(fileInput, "");
                 zip.Save();
             }
+            filesToDelete.Add(fileOutput);
         }
 
         protected void WriteToFile(string targetFile, string pathToDirectory, List<string> files, OnZipChanged callback)
@@ -84,6 +94,7 @@ namespace CloudBackuper
             FileStream fsInput = null;
             ZipArchive zip = null;
             Stream entryStream = null;
+            bool forceRemove = false;
 
             try
             {
@@ -95,6 +106,7 @@ namespace CloudBackuper
 
                 foreach (var path in files)
                 {
+                    cancellation.Token.ThrowIfCancellationRequested();
                     var filename = FileUtils.GetRelativePath(pathToDirectory, path);
                     logger.Trace($"Архивируем файл: " + filename);
                     callback?.Invoke(total, index, filename);
@@ -110,6 +122,12 @@ namespace CloudBackuper
 
                     index++;
                 }
+                filesToDelete.Add(targetFile);
+            }
+            catch (OperationCanceledException)
+            {
+                forceRemove = true;
+                throw;
             }
             finally
             {
@@ -118,17 +136,21 @@ namespace CloudBackuper
 
                 fsInput?.Dispose();
                 entryStream?.Dispose();
+                if (forceRemove) TryRemove(targetFile);
             }
+        }
+
+        private void TryRemove(string file)
+        {
+            if (!File.Exists(file)) return;
+            File.Delete(file);
         }
 
         public void Dispose()
         {
             logger.Debug($"Удаляем временный файлы: " + string.Join(", ", filesToDelete.Select(x => $"\"{x}\"")));
-            foreach (var file in filesToDelete)
-            {
-                if (!File.Exists(file)) continue;
-                File.Delete(file);
-            }
+            foreach (var file in filesToDelete) TryRemove(file);
+            filesToDelete.Clear();
         }
     }
 }

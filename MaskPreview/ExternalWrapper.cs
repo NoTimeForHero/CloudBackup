@@ -94,13 +94,12 @@ namespace MaskPreview
 
     internal class ZipWrapper : IDisposable
     {
-        public const string defaultPassword = "example1234";
         private readonly MainWindow.DataModel model;
         private string filename;
         private ZipTools zip;
 
         public delegate void DelegateOnProgress(string state, int current, int total);
-        public delegate void DelegateOnComplete(string filename);
+        public delegate void DelegateOnComplete(bool success, string filename = null);
 
         public event DelegateOnProgress OnProgress;
         public event DelegateOnComplete OnComplete;
@@ -113,7 +112,20 @@ namespace MaskPreview
         public async void Run()
         {
             zip?.Dispose();
-            await Task.Factory.StartNew(RunData, TaskCreationOptions.LongRunning);
+            try
+            {
+                await Task.Factory.StartNew(RunData, TaskCreationOptions.LongRunning);
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("Cancelled!");
+            }
+        }
+
+        public void Cancel()
+        {
+            zip.Cancel();
+            OnComplete?.Invoke(false);
         }
 
         private void RunData()
@@ -129,10 +141,10 @@ namespace MaskPreview
             FileUtils.GetFilesInDirectory(path, mask, flattenFiles: files);
             filename = ZipTools.RandomFilename(prefix: "MaskPreview_");
 
-            zip = new ZipTools(path, files, defaultPassword);
+            zip = new ZipTools(path, files);
             zip.CreateZip((total, current, name) =>
                 OnProgress?.Invoke($"Архивация файла: {name}", current, total), filename);
-            OnComplete?.Invoke(filename);
+            OnComplete?.Invoke(true, filename);
         }
 
         public void Dispose()

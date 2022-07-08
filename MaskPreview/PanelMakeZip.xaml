@@ -18,21 +18,22 @@
         <StackPanel Visibility="Hidden" Margin="0,20,0,0" x:Name="panelPrepare">
             <Button HorizontalAlignment="Center" Style="{StaticResource btnBase}" x:Name="btnCreateZip">Создать архив</Button>
         </StackPanel>
-        <StackPanel Visibility="Hidden" x:Name="panelProgress">
+        <StackPanel Visibility="Visible" x:Name="panelProgress">
             <Grid Margin="20,20,20,10" >
                 <ProgressBar VerticalAlignment="Center" Height="24" Value="100" x:Name="progressBar"/>
                 <Label VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="24" x:Name="progressBarText"></Label>
             </Grid>
             <TextBlock TextWrapping="WrapWithOverflow" HorizontalAlignment="Center" FontSize="16" x:Name="progressStatus">Создание архива...</TextBlock>
+            <Button HorizontalAlignment="Center" Padding="25,10" Margin="0,20,0,0" x:Name="btnCancel">Отменить архивацию</Button>
         </StackPanel>
-        <StackPanel Visibility="Visible" Orientation="Vertical" HorizontalAlignment="Center" x:Name="panelComplete">
+        <StackPanel Visibility="Hidden" Orientation="Vertical" HorizontalAlignment="Center" x:Name="panelComplete">
             <TextBlock HorizontalAlignment="Center" Margin="0,5">
-                Пароль от архива:
-                <Run x:Name="lblPassword">*******</Run>
+                Путь до файла: 
             </TextBlock>
             <TextBox IsReadOnly="True" x:Name="txtPathZip"></TextBox>
             <StackPanel Orientation="Horizontal">
-                <Button Style="{StaticResource btnBase}" x:Name="btnOpenZip">Открыть архив</Button>
+                <Button Style="{StaticResource btnBase}" x:Name="btnOpenZip">Архиватор</Button>
+                <Button Style="{StaticResource btnBase}" x:Name="btnOpenTEMP">Explorer</Button>
                 <Button Style="{StaticResource btnBase}" x:Name="btnDeleteZip">Удалить архив</Button>
             </StackPanel>
         </StackPanel>
