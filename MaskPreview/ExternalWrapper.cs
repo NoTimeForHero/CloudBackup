@@ -25,12 +25,12 @@ namespace MaskPreview
         public string SerializeModel()
         {
             var cfgRoot = new Config();
-            var cfgJob = activeSection ?? new Config_Job
+            var cfgJob = Utils.Clone(activeSection ?? new Config_Job
             {
                 Id = "example_job_1",
                 Name = "Example Job 1",
-                Path = model.Path
-            };
+            });
+            cfgJob.Path = model.Path;
             cfgRoot.Jobs = new List<Config_Job> { cfgJob };
             cfgJob.Masks = GetMasks();
             return YamlTools.Serialize(cfgRoot);

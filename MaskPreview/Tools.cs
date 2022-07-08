@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace MaskPreview
 {
@@ -22,6 +23,15 @@ namespace MaskPreview
         {
             PropertyChangedEventHandler handler = PropertyChanged;
             if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public static class Utils
+    {
+        public static T Clone<T>(T input)
+        {
+            var json = JsonConvert.SerializeObject(input);
+            return JsonConvert.DeserializeObject<T>(json);
         }
     }
 }
